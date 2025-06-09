@@ -21,8 +21,3 @@ jobs:
           cache: "maven"
       - name: Check
         run: mvn -B verify
-      - name: Build and analyze
-
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B -P metrics verify sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
