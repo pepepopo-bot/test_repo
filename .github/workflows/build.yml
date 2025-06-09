@@ -12,6 +12,11 @@ jobs:
         java: [11, 17]
     name: "Java ${{ matrix.java }} build"
     steps:
+      - name: 'Test for Sonar secret'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+            echo "SONAR_TOKEN_SET=$(test ${SONAR_TOKEN} && echo true)" >> $GITHUB_ENV
       - uses: actions/checkout@v4
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -21,8 +26,19 @@ jobs:
           cache: "maven"
       - name: Check
         run: mvn -B verify
-      - name: Build and analyze
-
+      - name: Sonar
+        if: matrix.java == '17' && env.SONAR_TOKEN_SET == 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B -P metrics verify sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+        run: mvn sonar:sonar -Dproject.key=pepepopo-bot_test_repo
+      - name: Save PR number
+        if: github.event_name == 'pull_request'
+        run: echo ${{ github.event.number }} > PR_NUMBER.txt
+      - name: Archive PR number
+        if: env.SONAR_TOKEN_SET == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PR_NUMBER
+          path: PR_NUMBER.txt
+
+
