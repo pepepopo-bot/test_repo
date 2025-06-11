@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: [Build]
     types: [completed]
-
 jobs:
   Sonar:
     name: Sonar
@@ -28,9 +27,6 @@ jobs:
           name: java-binaries
           path: java-binaries
           workflow_search: true
-
-      - name: List Java binaries
-        run: ls -R binaries
 
       - uses: actions/checkout@v4
         with:
