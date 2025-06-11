@@ -9,6 +9,9 @@ jobs:
   Sonar:
     name: Sonar
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     steps:
       - name: echo event
@@ -19,8 +22,9 @@ jobs:
         with:
           workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
-          repo: ${{ github.event.workflow_run.head_repository.full_name }}
-          github_token: '${{ secrets.PAT }}'
+          repo: pepepopo-bot/test_repo
+          github_token: ${{ secrets.PAT }}
+          allow_forks: true
           name: java-binaries
           path: java-binaries
           workflow_search: true
