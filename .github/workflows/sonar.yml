@@ -15,10 +15,16 @@ jobs:
         run: cat $GITHUB_EVENT_PATH
 
       - name: Download Java binaries
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v10
         with:
+          github_token: ${{ secrets.PAT }}
           name: java-binaries
           path: java-binaries
+          workflow_search: true
+          pr: ${{github.event.pull_request.number}}
+
+      - name: List Java binaries
+        run: ls -R binaries
 
       - uses: actions/checkout@v4
         with:
@@ -32,9 +38,6 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: maven
-
-      - name: List Java binaries
-        run: ls -R binaries
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
