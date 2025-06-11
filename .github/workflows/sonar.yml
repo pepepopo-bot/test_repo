@@ -27,6 +27,7 @@ jobs:
           allow_forks: true
           name: java-binaries
           path: java-binaries
+          use_unzip: true
           workflow_search: true
 
       - uses: actions/checkout@v4
