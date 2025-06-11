@@ -23,7 +23,7 @@ jobs:
           workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
           repo: pepepopo-bot/test_repo
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT }}
           allow_forks: true
           name: java-binaries
           path: java-binaries
