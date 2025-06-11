@@ -17,11 +17,11 @@ jobs:
       - name: Download Java binaries
         uses: dawidd6/action-download-artifact@v10
         with:
-          github_token: ${{ secrets.PAT }}
+          workflow: ${{ github.event.workflow_run.name }}
+          run_id: ${{ github.event.workflow_run.id }}
           name: java-binaries
           path: java-binaries
           workflow_search: true
-          pr: ${{github.event.pull_request.number}}
 
       - name: List Java binaries
         run: ls -R binaries
