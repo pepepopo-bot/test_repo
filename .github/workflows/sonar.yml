@@ -40,7 +40,7 @@ jobs:
         uses: octokit/request-action@v2.x
         id: get_pr_data
         with:
-          route: GET /repos/${{ github.event.workflow_run.head_repository.full_name }}/pulls/${{ steps.pr_number.outputs.content }}
+          route: GET /repos/${{ github.event.workflow_run.repository.full_name }}/pulls/${{ steps.pr_number.outputs.content }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

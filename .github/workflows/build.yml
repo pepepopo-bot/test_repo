@@ -22,7 +22,7 @@ jobs:
           java-version: "17"
           cache: "maven"
       - name: Check
-        run: mvn -B verify
+        run: mvn -B -Pmetrics verify
       - name: Sonar
         if: env.SONAR_TOKEN_SET == 'true'
         env:
