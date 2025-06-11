@@ -46,7 +46,7 @@ jobs:
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=.
+        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
