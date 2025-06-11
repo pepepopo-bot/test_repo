@@ -7,6 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
     name: "Java ${{ matrix.java }} build"
     steps:
       - name: 'Test for Sonar secret'
