@@ -28,9 +28,6 @@ jobs:
           path: java-binaries
           workflow_search: true
 
-      - name: List Java binaries
-        run: ls -R binaries
-
       - uses: actions/checkout@v4
         with:
           repository: ${{ github.event.workflow_run.head_repository.full_name }}

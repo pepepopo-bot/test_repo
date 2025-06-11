@@ -26,7 +26,7 @@ jobs:
           cache: "maven"
 
       - name: Check
-        run: mvn -B install
+        run: mvn -B -Pmetrics install
       - name: Sonar
         if: env.SONAR_TOKEN_SET == 'true'
         env:
