@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
       actions: write
-    name: "Java ${{ matrix.java }} build"
+    name: "Java build"
     steps:
       - name: 'Test for Sonar secret'
         env:
