@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: [Build]
     types: [completed]
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
