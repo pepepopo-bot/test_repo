@@ -49,7 +49,7 @@ jobs:
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.pullrequest.key=${{ github.event.pull_request.key }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }}
+        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.pullrequest.key=${{ github.event.pull_request.key }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }} -Dsonar.jacoco.reportPaths=target/site/jacoco.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
