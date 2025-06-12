@@ -4,9 +4,7 @@ on:
   workflow_run:
     workflows: [Build]
     types: [completed]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
+  pull_request:
 
 jobs:
   Sonar:
@@ -46,9 +44,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Debug compiled folder
+        run: ls -R compiled
+
+      - name: Debug target/classes folder
+        run: ls -R target/classes || echo "target/classes does not exist"
+
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=target/classes -Dsonar.java.source=17
+        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.java.source=17
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
