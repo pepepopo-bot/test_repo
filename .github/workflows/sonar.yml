@@ -33,8 +33,25 @@ jobs:
           path: compiled
           workflow_search: true
 
-      - name: List compiled folder
-        run: ls -R compiled
+      - name: Download PR info
+        uses: dawidd6/action-download-artifact@v10
+        with:
+          workflow: ${{ github.event.workflow_run.name }}
+          run_id: ${{ github.event.workflow_run.id }}
+          repo: pepepopo-bot/test_repo
+          github_token: ${{ secrets.PAT }}
+          allow_forks: true
+          name: pr_info
+          workflow_search: true
+
+      - name: Load PR info
+        id: pr
+        run: |
+          cat pr_metadata.txt
+          source pr_metadata.txt
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
+          echo "PR_BASE=$PR_BASE" >> $GITHUB_ENV
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -43,12 +60,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Debug compiled folder
-        run: ls -R compiled
-
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.pullrequest.key=${{ github.event.pull_request.key }} -Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.base=${{ github.base_ref }} -Dsonar.jacoco.reportPaths=target/site/jacoco.xml
+        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.pullrequest.key=$PR_NUMBER -Dsonar.pullrequest.branch=$PR_BRANCH -Dsonar.pullrequest.base=$PR_BASE -Dsonar.jacoco.reportPaths=target/site/jacoco.xml
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -35,6 +35,20 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
 
+      - name: Save PR info
+        if: env.SONAR_TOKEN_SET != 'true'
+        run: |
+          echo "PR_NUMBER= ${{ github.event.pull_request.number }}" > pr_metadata.txt
+          echo "PR_BRANCH= ${{ github.head_ref }}" > pr_metadata.txt
+          echo "PR_BASE= ${{ github.base_ref }}" > pr_metadata.txt
+
+      - name: Upload PR info
+        if: env.SONAR_TOKEN_SET != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr_info
+          path: pr_info.txt
+
       - name: Upload Java binaries for Sonar
         if: env.SONAR_TOKEN_SET != 'true'
         uses: actions/upload-artifact@v4
