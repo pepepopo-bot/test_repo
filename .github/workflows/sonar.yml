@@ -31,6 +31,9 @@ jobs:
           path: java-binaries
           workflow_search: true
 
+      - name: List java-binaries folder
+        run: ls -R java-binaries
+
       - uses: actions/checkout@v4
         with:
           repository: ${{ github.event.workflow_run.head_repository.full_name }}
@@ -46,7 +49,7 @@ jobs:
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.sources=src/main/java/ -Dsonar.java.binaries=./target/classes
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
