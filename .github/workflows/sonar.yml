@@ -20,6 +20,10 @@ jobs:
       - name: echo event
         run: cat $GITHUB_EVENT_PATH
 
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download Java binaries
         uses: dawidd6/action-download-artifact@v10
         with:
@@ -28,12 +32,12 @@ jobs:
           repo: pepepopo-bot/test_repo
           github_token: ${{ secrets.PAT }}
           allow_forks: true
-          name: project
-          path: ./
+          name: compiled
+          path: compiled
           workflow_search: true
 
-      - name: List java-binaries folder
-        run: ls
+      - name: List compiled folder
+        run: ls -R compiled
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -44,7 +48,7 @@ jobs:
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+        run: mvn -X sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=compiled
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
