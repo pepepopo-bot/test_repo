@@ -18,6 +18,9 @@ jobs:
         run: |
             echo "SONAR_TOKEN_SET=$(test ${SONAR_TOKEN} && echo true)" >> $GITHUB_ENV
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -36,9 +39,8 @@ jobs:
         if: env.SONAR_TOKEN_SET != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: java-binaries
-          path: |
-            **/target/classes
-            **/target/test-classes
+          name: project
+          path: .
+
 
 
