@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
       actions: write
-    name: "Java ${{ matrix.java }} build"
+    name: "Java build"
     steps:
       - name: 'Test for Sonar secret'
         env:
@@ -28,11 +28,13 @@ jobs:
 
       - name: Check
         run: mvn -B install
+
       - name: Sonar
         if: env.SONAR_TOKEN_SET == 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+
       - name: Upload Java binaries for Sonar
         if: env.SONAR_TOKEN_SET != 'true'
         uses: actions/upload-artifact@v4
