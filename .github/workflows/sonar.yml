@@ -15,9 +15,6 @@ jobs:
       actions: read
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     steps:
-      - name: echo event
-        run: cat $GITHUB_EVENT_PATH
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -77,7 +74,12 @@ jobs:
 
       - name: SonarCloud Scan on PR
         if: github.event.workflow_run.event == 'pull_request'
-        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo -Dsonar.java.binaries=**/* -Dsonar.pullrequest.key=${{ steps.pr_number.outputs.content }} -Dsonar.pullrequest.branch=${{ env.PR_HEAD_BRANCH }} -Dsonar.pullrequest.base=${{ env.PR_BASE_BRANCH }}
+        run: |
+          mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo \
+          -Dsonar.java.binaries=**/* \
+          -Dsonar.pullrequest.key=${{ steps.pr_number.outputs.content }} \
+          -Dsonar.pullrequest.branch=${{ env.PR_HEAD_BRANCH }} \
+          -Dsonar.pullrequest.base=${{ env.PR_BASE_BRANCH }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
