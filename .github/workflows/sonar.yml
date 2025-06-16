@@ -24,7 +24,7 @@ jobs:
         with:
           workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
-          repo: pepepopo-bot/test_repo
+          repo: ${{ github.event.workflow_run.full_name }}
           github_token: ${{ secrets.PAT }}
           allow_forks: true
           name: compiled
@@ -36,7 +36,7 @@ jobs:
         with:
           workflow: ${{ github.event.workflow_run.name }}
           run_id: ${{ github.event.workflow_run.id }}
-          repo: pepepopo-bot/test_repo
+          repo: ${{ github.event.workflow_run.full_name }}
           github_token: ${{ secrets.PAT }}
           allow_forks: true
           name: pr_number
