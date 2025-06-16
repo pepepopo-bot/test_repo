@@ -12,6 +12,7 @@ jobs:
       actions: write
     name: "Java build"
     steps:
+      -
       - name: 'Test for Sonar secret'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
