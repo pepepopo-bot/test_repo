@@ -1,7 +1,6 @@
 name: pr_target.yml
 on:
   pull_request_target:
-
 jobs:
   sonar:
     runs-on: ubuntu-latest
