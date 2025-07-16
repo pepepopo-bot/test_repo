@@ -1,0 +1,34 @@
+name: pr.yml
+on:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Java build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: "maven"
+
+      - name: Check
+        run: mvn -B verify
+
+      - name: Upload binaries and tst results
+        uses: actions/upload-artifact
+        with:
+          name: target
+          path: |
+            **/target
+
+
+
+
+# version matrix?
+# mvn offline mode -> checkout
+
+
+# mvn sonar-maven-plugin (musí být online)
