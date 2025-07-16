@@ -5,6 +5,7 @@ jobs:
   sonar:
     runs-on: ubuntu-latest
       - name: offline mode
+        run: mvn dependency:go-offline
       - name: checkout
         with:
           fetch-depth: 0
