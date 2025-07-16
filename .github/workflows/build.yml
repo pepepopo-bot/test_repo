@@ -24,6 +24,6 @@ jobs:
       - name: Offline mode
         run: mvn dependency:go-offline
       - name: sonar
-        run: mvn -o sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
         env:
-          SONAR_TOKEN: {{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -o sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
