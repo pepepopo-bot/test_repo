@@ -1,0 +1,12 @@
+name: pr_target.yml
+on:
+  pull_request_target:
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+      - name: offline mode
+      - name: checkout
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
