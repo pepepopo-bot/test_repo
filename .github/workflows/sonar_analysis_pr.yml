@@ -1,5 +1,4 @@
 name: Sonar analysis
-
 on:
   workflow_run:
     workflows: ["Sonar"]
