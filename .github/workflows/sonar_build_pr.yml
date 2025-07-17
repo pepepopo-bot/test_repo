@@ -7,7 +7,6 @@ on:
 jobs:
   ##sonar může probíhat jen když směřuje do našeho repa, nesmí jít na fork
   ## když to kontroluju tady tak ve workflow_run workflow to už kontrolovat nemusím
-
   # vrátí repo ve kterém je workflow spouštěn
   build:
     #if: github.repozitory == 'pepepopo-bot/test_repo'
