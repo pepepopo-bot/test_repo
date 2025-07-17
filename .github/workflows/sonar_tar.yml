@@ -1,4 +1,4 @@
-name: Sonar analysis
+name: Sonar tar analysis
 on:
   workflow_run:
     workflows: ["Sonar"]
@@ -17,8 +17,6 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-
-
       - name: save PR info in to env
         shell: bash
         run: |
@@ -26,6 +24,8 @@ jobs:
           echo "pr_head_ref=$(sed '2q;d' pr-event.txt)" >> "$GITHUB_ENV"
           echo "pr_base_ref=$(sed '3q;d' pr-event.txt)" >> "$GITHUB_ENV"
           echo "pr_head_sha=$(sed '4q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "target_artifact_id=$(sed '5q;d' pr-event.txt)" >> "$GITHUB_ENV"
+
 
       - name: checkout head branch
         uses: actions/checkout@v4
@@ -42,6 +42,17 @@ jobs:
           git checkout ${{ github.event.workflow_run.head_sha }}
           git clean -ffdx && git reset --hard HEAD
 
+      - name: Download compiled classes artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: target-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract compiled classes artifact
+        shell: bash
+        run: tar -xf target.tar
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -56,13 +67,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
 
-      - name: download build artefacts
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -75,3 +79,4 @@ jobs:
                -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
                -Dsonar.pullrequest.provider=GitHub
   # -Dsonar.java.binaries=**/* \
+
