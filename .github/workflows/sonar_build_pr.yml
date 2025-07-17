@@ -56,6 +56,7 @@ jobs:
             **/target
 
       - name: Prepare PR info
+
         shell: bash
         run: |
           echo ${{ github.event.pull_request.number }} >> pr-event.txt
@@ -68,8 +69,10 @@ jobs:
      #sestavit a předat output  -> v dalším jobu pak artefakty uploadnout a prepare a upload info about PR
 
       - name: Upload PR info
+        if: matrix.java == '17'
         uses: actions/upload-artifact@v4
         with:
           name: pr-event-artifact
           path: |
             pr-event.txt
+        # tohle MUSÍ běžet jen jednou, jinak to pak zbytečně padá
