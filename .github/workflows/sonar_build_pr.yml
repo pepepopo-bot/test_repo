@@ -56,7 +56,6 @@ jobs:
             **/target
 
       - name: Prepare PR info
-
         shell: bash
         run: |
           echo ${{ github.event.pull_request.number }} >> pr-event.txt
