@@ -54,6 +54,20 @@ jobs:
           path: | 
             **/target
 
+      - name: tar prepare
+        shell: bash
+        run: find -iname "*target" -type d -exec tar -rf target.tar {} \+
+
+      - name: Upload compiled classes artifact
+        uses: actions/upload-artifact@v4
+        id: target-artifact-upload-step
+        with:
+          name: target-artifact
+          path: |
+            target.tar
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Prepare PR info
         shell: bash
         run: |
@@ -61,6 +75,8 @@ jobs:
           echo ${{ github.event.pull_request.head.ref }} >> pr-event.txt
           echo ${{ github.event.pull_request.base.ref }} >> pr-event.txt
           echo ${{ github.event.pull_request.head.sha }} >> pr-event.txt
+          echo ${{ steps.target-artifact-upload-step.outputs.artifact-id }} >> pr-event.txt
+
         ## basebranch
         ## Pr number
 
