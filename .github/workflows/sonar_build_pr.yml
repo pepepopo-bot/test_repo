@@ -55,10 +55,12 @@ jobs:
             **/target
 
       - name: tar prepare
+        if: matrix.java == '17'
         shell: bash
         run: find -iname "*target" -type d -exec tar -rf target.tar {} \+
 
       - name: Upload compiled classes artifact
+        if: matrix.java == '17'
         uses: actions/upload-artifact@v4
         id: target-artifact-upload-step
         with:
