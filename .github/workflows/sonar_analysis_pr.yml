@@ -1,4 +1,5 @@
 name: Sonar analysis
+
 on:
   workflow_run:
     workflows: ["Sonar"]
@@ -65,8 +66,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo \          
-               -Dsonar.pullrequest.key=${{ env.pr-key }} \
-               -Dsonar.pullrequest.branch=${{ env.pr-head-ref }} \
-               -Dsonar.pullrequest.base=${{ env.pr-base-ref }}
+          mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo \   
+               -Dsonar.scm.revision=${{  github.event.workflow_run.head_sha }}
+               -Dsonar.pullrequest.key=${{ env.pr_key }} \
+               -Dsonar.pullrequest.branch=${{ env.pr_head_ref }} \
+               -Dsonar.pullrequest.base=${{ env.pr_base_ref }} \
+               -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
+               -Dsonar.pullrequest.provider=GitHub
   # -Dsonar.java.binaries=**/* \
