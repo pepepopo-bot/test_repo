@@ -28,9 +28,9 @@ jobs:
         shell: bash
         run: |
           echo "pr_number=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
-          echo "pr_head_ref=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
-          echo "pr_base_ref=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
-          echo "pr_head_sha=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_head_ref=$(sed '2q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_base_ref=$(sed '3q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_head_sha=$(sed '4q;d' pr-event.txt)" >> "$GITHUB_ENV"
 
       - name: checkout head branch
         uses: actions/checkout@v4
