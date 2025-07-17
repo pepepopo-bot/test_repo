@@ -35,7 +35,7 @@ jobs:
 
       - name: checkout base branch
         run: |
-          git remote add upstream ${{ github.event.repository.clone_url }}
+          git remote add upstream https://github.com/pepepopo-bot/test_repo
           git fetch upstream
           git checkout -B $pr_base_ref upstream/$pr_base_ref
           git checkout ${{ github.event.workflow_run.head_sha }}

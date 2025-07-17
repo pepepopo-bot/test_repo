@@ -32,10 +32,6 @@ jobs:
           fi
           
           mvn -B $ARGS
-
-
-
-
       - name: sonar
         if: matrix.java == '17' && github.repository == 'pipipopo-bot/test_repo' # latest and target repository (nekazda branch bude mit na cloudu zobrazenou analýzu, ale další if by to asi moc kompikoval) == wren
         env:
