@@ -1,15 +1,13 @@
-name: sonar_analysis_pr.yml
+name: Sonar analysis
 on:
   workflow_run:
-    workflows:
-      - sonar_build_pr
-    types:
-      - completed
+    workflows: ["Sonar"]
+    types: [completed]
 
 ## bot account pro PAT??
 jobs:
   sonar:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       ## PR info je  asi lepší získat GH api-> no ale na to taky potřebuju přenést PR number info
@@ -17,29 +15,58 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pr-event-artifact
-          path: p
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: download build artefacts
-        uses:
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: save PR info in to env
+        shell: bash
+        run: |
+          echo "pr_number=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_head_ref=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_base_ref=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
+          echo "pr_head_sha=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
 
       - name: checkout base branch
         run: |
           git remote add upstream ${{ github.event.repository.clone_url }}
           git fetch upstream
-          git checkout -B ${{  }}
-          
+          git checkout -B $pr_base_ref upstream/$pr_base_ref
+          git checkout ${{ github.event.workflow_run.head_sha }}
+          git clean -ffdx && git reset --hard HEAD
 
-      - name: download artifacts
-        uses: actions/download-artifact@v4
+      - name: checkout head branch
+        uses: actions/checkout@v4
         with:
-          path:
+          repository: '${{ github.repository }}'
+          ref: ${{ github.event.workflow_run.head_repository.full_name }}
+          fetch-depth: '0'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          # předávat versi jako latest pro test pr-event.txt ??
+          version: '17'
+          distribution: 'temurine'
+          cache: maven
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
 
       - name: analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: | 
+        run: |
           mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo \
           -Dsonar.java.binaries=**/* \
           -Dsonar.pullrequest.key=${{ steps.pr_number.outputs.content }} \

@@ -1,4 +1,4 @@
-name: sonar_build_pr
+name: Sonar
 on:
   pull_request:
 
@@ -9,8 +9,8 @@ jobs:
   ## když to kontroluju tady tak ve workflow_run workflow to už kontrolovat nemusím
 
   # vrátí repo ve kterém je workflow spouštěn
-  if: github.repozitory == 'WrenSecurity/wrensec-commons'
   build:
+    #if: github.repozitory == 'pepepopo-bot/test_repo'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,7 +18,6 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-    name: "Java ${{ matrix.java }} build"
     steps:
       # předpokládám že secret není dostupný
       - name: Checkout
@@ -35,10 +34,21 @@ jobs:
       # cache
 
       - name: Verify
-        run: mvn -B verify $([[ "$({{ matrix.java }}" = "17" ]] && echo '-P metrics') $([[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repozitory }}" ]] && echo '-P metrics')
+        run: |
+          ARGS="verify"
+
+          if [[ "${{ matrix.java }}" == "17" ]]; then
+            ARGS="-P metrics $ARGS"
+          fi
+
+          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            ARGS="$ARGS sonar:sonar"
+          fi
+
+          mvn -B $ARGS
 
       - name: Latest version update artifacts
-        if: matrix.java == max(matrix.java)
+        if: matrix.java == '17'
         uses: actions/upload-artifact@v4
         with:
           name: compiled
@@ -52,14 +62,13 @@ jobs:
           echo ${{ github.event.pull_request.head.ref }} >> pr-event.txt
           echo ${{ github.event.pull_request.base.ref }} >> pr-event.txt
           echo ${{ github.event.pull_request.head.sha }} >> pr-event.txt
-          echo ${{ steps.target-artifact-upload-step.outputs.artifact-id }} >> pr-event.txt
         ## basebranch
         ## Pr number
 
      #sestavit a předat output  -> v dalším jobu pak artefakty uploadnout a prepare a upload info about PR
 
       - name: Upload PR info
-        uses: actions/download-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: pr-event-artifact
           path: |

@@ -3,3 +3,8 @@ on:
   push:
 ## ve free verzi se stejně provádí jen analýza mainu
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo
+        run: echo 'Hello'
