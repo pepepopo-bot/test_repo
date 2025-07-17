@@ -33,6 +33,13 @@ jobs:
           echo "pr_base_ref=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
           echo "pr_head_sha=$(sed '1q;d' pr-event.txt)" >> "$GITHUB_ENV"
 
+      - name: checkout head branch
+        uses: actions/checkout@v4
+        with:
+          repository: '${{ github.repository }}'
+          ref: ${{ github.event.workflow_run.head_repository.full_name }}
+          fetch-depth: '0'
+
       - name: checkout base branch
         run: |
           git remote add upstream https://github.com/pepepopo-bot/test_repo
@@ -40,13 +47,6 @@ jobs:
           git checkout -B $pr_base_ref upstream/$pr_base_ref
           git checkout ${{ github.event.workflow_run.head_sha }}
           git clean -ffdx && git reset --hard HEAD
-
-      - name: checkout head branch
-        uses: actions/checkout@v4
-        with:
-          repository: '${{ github.repository }}'
-          ref: ${{ github.event.workflow_run.head_repository.full_name }}
-          fetch-depth: '0'
 
       - name: Set up JDK
         uses: actions/setup-java@v4
