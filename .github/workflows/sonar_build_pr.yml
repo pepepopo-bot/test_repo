@@ -1,0 +1,66 @@
+name: sonar_build_pr
+on:
+  pull_request:
+
+## má se toto spouštět i při 'interním' Pull requestu
+## a co pr na Forku mezi dvěma jeho větvemi (vubec to nejde do upstreamu)
+jobs:
+  ##sonar může probíhat jen když směřuje do našeho repa, nesmí jít na fork
+  ## když to kontroluju tady tak ve workflow_run workflow to už kontrolovat nemusím
+
+  # vrátí repo ve kterém je workflow spouštěn
+  if: github.repozitory == 'WrenSecurity/wrensec-commons'
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    strategy:
+      matrix:
+        java: [11, 17]
+    name: "Java ${{ matrix.java }} build"
+    steps:
+      # předpokládám že secret není dostupný
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          cache: maven
+      # přidat argument k mvn verify podle toho jaká je verze javy
+      # nejak automatizovat použití nejnověří verze
+      # cache
+
+      - name: Verify
+        run: mvn -B verify $([[ "$({{ matrix.java }}" = "17" ]] && echo '-P metrics') $([[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repozitory }}" ]] && echo '-P metrics')
+
+      - name: Latest version update artifacts
+        if: matrix.java == max(matrix.java)
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled
+          path: | 
+            **/target
+
+      - name: Prepare PR info
+        shell: bash
+        run: |
+          echo ${{ github.event.pull_request.number }} >> pr-event.txt
+          echo ${{ github.event.pull_request.head.ref }} >> pr-event.txt
+          echo ${{ github.event.pull_request.base.ref }} >> pr-event.txt
+          echo ${{ github.event.pull_request.head.sha }} >> pr-event.txt
+          echo ${{ steps.target-artifact-upload-step.outputs.artifact-id }} >> pr-event.txt
+        ## basebranch
+        ## Pr number
+
+     #sestavit a předat output  -> v dalším jobu pak artefakty uploadnout a prepare a upload info about PR
+
+      - name: Upload PR info
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-event-artifact
+          path: |
+            pr-event.txt

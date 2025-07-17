@@ -1,0 +1,5 @@
+name: sonar_branches.yml
+on:
+  push:
+## ve free verzi se stejně provádí jen analýza mainu
+jobs:
