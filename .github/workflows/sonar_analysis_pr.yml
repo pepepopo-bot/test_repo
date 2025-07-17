@@ -1,4 +1,4 @@
-name: sonar_analysis_pr.yml
+name: Sonar analysis
 on:
   workflow_run:
     workflows: ["Sonar"]
