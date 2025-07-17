@@ -66,7 +66,6 @@ jobs:
         ## Pr number
 
      #sestavit a předat output  -> v dalším jobu pak artefakty uploadnout a prepare a upload info about PR
-
       - name: Upload PR info
         if: matrix.java == '17'
         uses: actions/upload-artifact@v4

@@ -36,8 +36,8 @@ jobs:
       - name: checkout head branch
         uses: actions/checkout@v4
         with:
-          repository: '${{ github.repository }}'
-          ref: ${{ github.event.workflow_run.head_repository.full_name }}
+          repository: '${{ github.event.workflow_run.head_repository.full_name  }}'
+          ref: ${{ github.event.workflow_run.head_sha}}
           fetch-depth: '0'
 
       - name: checkout base branch
