@@ -20,9 +20,24 @@ jobs:
           cache: "maven"
       - name: Check
         run: mvn -B verify
-      - name: Offline mode
-        run: mvn dependency:go-offline
+
+
+      - name: Verify non tested versions
+        if: matrix.java == '17' && github.repository == 'pipipopo-bot/test_repo' # latest and target repository (nekazda branch bude mit na cloudu zobrazenou analýzu, ale další if by to asi moc kompikoval) == wren
+        run: |
+          ARGS="verify"
+          
+          if [[ "${{ matrix.java }}" == "17" && "${{ github.repository }}" == "pipipopo-bot/test_repo" ]]; then
+          ARGS="-P metrics $ARGS"
+          fi
+          
+          mvn -B $ARGS
+
+
+
+
       - name: sonar
+        if: matrix.java == '17' && github.repository == 'pipipopo-bot/test_repo' # latest and target repository (nekazda branch bude mit na cloudu zobrazenou analýzu, ale další if by to asi moc kompikoval) == wren
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -o sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
