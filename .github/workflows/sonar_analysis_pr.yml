@@ -3,7 +3,6 @@ on:
   workflow_run:
     workflows: ["Sonar"]
     types: [completed]
-
 ## bot account pro PAT??
 jobs:
   sonar:
