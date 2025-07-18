@@ -7,9 +7,9 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-      include:
-        - java: 17
-          sonar: true
+        include:
+          - java: 17
+            sonar: true
     name: "Java ${{ matrix.java }} build"
     steps:
       - name: Checkout
