@@ -33,7 +33,7 @@ jobs:
           fi
           mvn $MAVEN_ARGS
       - name: Report metrics
-        if: ${{ matrix.metrics }} && ${{ env.SONAR_ENABLED }} == "true"
+        if: matrix.metrics && env.SONAR_ENABLED
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
         run: |
