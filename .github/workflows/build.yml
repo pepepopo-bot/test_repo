@@ -9,31 +9,25 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
+      include:
+        - java: 17
+          sonar: true
     name: "Java ${{ matrix.java }} build"
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "${{ matrix.java }}"
           cache: "maven"
-      - name: Check
-        run: mvn -B verify
-
-
-      - name: Verify non tested versions
-        if: matrix.java == '17' && github.repository == 'pipipopo-bot/test_repo' # latest and target repository (nekazda branch bude mit na cloudu zobrazenou analýzu, ale další if by to asi moc kompikoval) == wren
-        run: |
-          ARGS="verify"
-          
-          if [[ "${{ matrix.java }}" == "17" && "${{ github.repository }}" == "pipipopo-bot/test_repo" ]]; then
-          ARGS="-P metrics $ARGS"
-          fi
-          
-          mvn -B $ARGS
-      - name: sonar
-        if: matrix.java == '17' && github.repository == 'pipipopo-bot/test_repo' # latest and target repository (nekazda branch bude mit na cloudu zobrazenou analýzu, ale další if by to asi moc kompikoval) == wren
+      - name: Verify build
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
+        run:
+          MAVEN_ARGS="verify"
+          if [[ "${{ matrix.sonar }}" == "true" && "$SONAR_TOKEN" ]]; then
+          MAVEN_ARGS=" -P metrics sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo"
+          fi
+          mvn $MAVEN_ARGS
