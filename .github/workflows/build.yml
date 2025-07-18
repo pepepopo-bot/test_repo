@@ -17,7 +17,6 @@ jobs:
       - name: Init variables
         run: |
           [[ "${{ github.repository }}" == "pepepopo-bot/test_repo" ]] && echo "SONAR_ENABLED=true" >> "$GITHUB_ENV"
-          fi
       - name: Checkout project
         uses: actions/checkout@v4
       - name: Set up Java
