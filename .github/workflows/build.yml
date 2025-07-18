@@ -31,3 +31,4 @@ jobs:
             MAVEN_ARGS="$MAVEN_ARGS -P metrics sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo"
           fi
           mvn $MAVEN_ARGS
+
