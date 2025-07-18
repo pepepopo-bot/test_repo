@@ -32,7 +32,7 @@ jobs:
           fi
           mvn $MAVEN_ARGS
       - name: Upload build artifacts
-        if: matrix.sonar && secrets.SONAR_TOKEN
+        if: matrix.sonar && github.repository == 'pepepopo-bot/test_repo'
         uses: actions/upload-artifact@v4
         with:
           name: target
@@ -42,7 +42,7 @@ jobs:
             !**/node_modules
   sonar:
     runs-on: ubuntu-latest
-    if: secrets.SONAR_TOKEN
+    if: github.repository == 'pepepopo-bot/test_repo'
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
