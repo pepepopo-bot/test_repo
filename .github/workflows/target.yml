@@ -27,7 +27,7 @@ jobs:
       - name: Verify build
         run:
           MAVEN_ARGS="verify"
-          if [[ "${{ matrix.sonar }}" == "true" && "$SONAR_TOKEN" ]]; then
+          if [[ "${{ matrix.sonar }}" == "true" ]]; then
             MAVEN_ARGS=" -P metrics"
           fi
           mvn $MAVEN_ARGS
