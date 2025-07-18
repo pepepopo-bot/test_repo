@@ -11,10 +11,14 @@ jobs:
         java: [11, 17]
         include:
           - java: 17
-            sonar: true
+            metrics: true
     name: "Java ${{ matrix.java }} build"
     steps:
-      - name: Checkout
+      - name: Init variables
+        run: |
+          [[ "${{ github.repository }}" == "pepepopo-bot/test_repo" ]] && echo "SONAR_ENABLED=true" >> "$GITHUB_ENV"
+          fi
+      - name: Checkout project
         uses: actions/checkout@v4
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -23,11 +27,15 @@ jobs:
           java-version: "${{ matrix.java }}"
           cache: "maven"
       - name: Verify build
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           MAVEN_ARGS="verify"
-          if [[ "${{ matrix.sonar }}" == "true" ]]; then
-            MAVEN_ARGS="$MAVEN_ARGS -P metrics sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo"
+          if [[ "${{ env.SONAR_ANALYSIS }}" ]]; then
+            MAVEN_ARGS="$MAVEN_ARGS -P metrics"
           fi
           mvn $MAVEN_ARGS
+      - name: Upload metrics
+        if: ${{ matrix.metrics}} && ${{ env.SONAR_ENABLED }} == "true"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+        run: |
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=pepepopo-bot_test_repo
