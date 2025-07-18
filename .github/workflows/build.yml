@@ -32,8 +32,8 @@ jobs:
             MAVEN_ARGS="$MAVEN_ARGS -P metrics"
           fi
           mvn $MAVEN_ARGS
-      - name: Upload metrics
-        if: ${{ matrix.metrics}} && ${{ env.SONAR_ENABLED }} == "true"
+      - name: Report metrics
+        if: ${{ matrix.metrics }} && ${{ env.SONAR_ENABLED }} == "true"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
         run: |
