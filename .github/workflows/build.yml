@@ -9,9 +9,9 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-      include:
-        - java: 17
-          sonar: true
+        include:
+          - java: 17
+            sonar: true
     name: "Java ${{ matrix.java }} build"
     steps:
       - name: Checkout
@@ -25,9 +25,9 @@ jobs:
       - name: Verify build
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run:
+        run: |
           MAVEN_ARGS="verify"
-          if [[ "${{ matrix.sonar }}" == "true" && "$SONAR_TOKEN" ]]; then
-          MAVEN_ARGS=" -P metrics sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo"
+          if [[ "${{ matrix.sonar }}" == "true" ]]; then
+            MAVEN_ARGS="$MAVEN_ARGS -P metrics sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo"
           fi
           mvn $MAVEN_ARGS
