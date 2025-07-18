@@ -1,0 +1,79 @@
+name: Build PR
+on:
+  pull_request_target:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [11, 17]
+      include:
+        - java: 17
+          sonar: true
+    name: "Java ${{ matrix.java }} build"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        env:
+          GITHUB_REF: "refs/pull/${{ github.event.pull_request.number }}/merge"
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "${{ matrix.java }}"
+          cache: "maven"
+        env:
+          GITHUB_REF: "refs/pull/${{ github.event.pull_request.number }}/merge"
+      - name: Verify build
+        run:
+          MAVEN_ARGS="verify"
+          if [[ "${{ matrix.sonar }}" == "true" && "$SONAR_TOKEN" ]]; then
+          MAVEN_ARGS=" -P metrics
+          fi
+          mvn $MAVEN_ARGS
+      - name: Upload build artifacts
+        if: matrix.sonar && secrets.SONAR_TOKEN
+        uses: actions/upload-artifact@v4
+        with:
+          name: target
+          path: |
+            **/*
+            !.git/
+            !**/node_modules
+  sonar:
+    runs-on: ubuntu-latest
+    if: secrets.SONAR_TOKEN
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          path: main
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: maven
+      - name: Checkout merge
+        uses: actions/checkout@v4
+        with:
+          ref: ${{  github.event.pull_request.head.sha  }}
+          path: merge
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: target
+          path: build
+      - name: Run Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run : |
+          cd main
+          mvn -o sonar:sonar -Dsonar.projectKey=pepepopo-bot_test_repo \
+            -Dsonar.projectBaseDir=../build \
+            -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} \
+            -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} \
+            -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
+            -Dsonar.pullrequest.provider=GitHub
