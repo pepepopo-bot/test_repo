@@ -77,4 +77,3 @@ jobs:
             -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} \
             -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
             -Dsonar.pullrequest.provider=GitHub
-
