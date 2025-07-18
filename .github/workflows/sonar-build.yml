@@ -30,23 +30,16 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          MAVEN_SONAR_ARGS="\
-            -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
-            -Dsonar.pullrequest.provider=GitHub"
-          if [[ "${{ github.event_name }}" == "pull" ]]; then
-            MAVEN_SONAR_ARGS="$MAVEN_SONAR_ARGS \
-              -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
-              -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-              -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} \
-              -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}"
-          fi
-          echo "$MAVEN_SONAR_ARGS" > sonar-args.txt
-      - name: Upload arguments
+          echo ${{ github.event.pull_request.number }} >> pr-event.txt
+          echo ${{ github.event.pull_request.head.ref }} >> pr-event.txt
+          echo ${{ github.event.pull_request.base.ref }} >> pr-event.txt
+          echo ${{ github.event.pull_request.head.sha }} >> pr-event.txt
+      - name: Upload parameters
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: sonar-args
-          path: sonar-args.txt
+          name: pr-event
+          path: pr-event.txt
       - name: Report metrics
         if: github.event_name == 'push'
         env:
