@@ -41,6 +41,7 @@ jobs:
             !.git/
             !**/node_modules
   sonar:
+    needs: build
     runs-on: ubuntu-latest
     if: github.repository == 'pepepopo-bot/test_repo'
     steps:
