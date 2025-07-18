@@ -1,0 +1,55 @@
+name: Sonar Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  report:
+    if: github.repository == 'pepepopo-bot/test_repo'
+    runs-on: ubuntu-latest
+    name: "Generate report"
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+      - name: Build project
+        run: mvn verify -P metrics
+      - name: Upload artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: target
+          path: "**/target"
+      - name: Prepare arguments
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          MAVEN_SONAR_ARGS="\
+            -Dsonar.pullrequest.github.repository=pepepopo-bot/test_repo \
+            -Dsonar.pullrequest.provider=GitHub"
+          if [[ "${{ github.event_name }}" == "pull" ]]; then
+            MAVEN_SONAR_ARGS="$MAVEN_SONAR_ARGS \
+              -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
+              -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+              -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} \
+              -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}"
+          fi
+          echo "$MAVEN_SONAR_ARGS" > sonar-args.txt
+      - name: Upload arguments
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-args
+          path: sonar-args.txt
+      - name: Report metrics
+        if: github.event_name == 'push'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+        run: |
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=pepepopo-bot_test_repo

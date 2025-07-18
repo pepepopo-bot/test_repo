@@ -1,0 +1,42 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: "Build and deploy"
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "maven"
+      - name: "Generate pages"
+        run: mvn -Pmetrics package site site:deploy
+      - name: "Configure pages"
+        uses: actions/configure-pages@v4
+      - name: "Upload pages"
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./target/deploy/"
+      - name: "Deploy pages"
+        uses: actions/deploy-pages@v4
