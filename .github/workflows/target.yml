@@ -28,7 +28,7 @@ jobs:
         run: |
           MAVEN_ARGS="verify"
           if [[ "${{ matrix.sonar }}" == "true" ]]; then
-            MAVEN_ARGS=" -P metrics"
+            MAVEN_ARGS="$MAVEN_ARGS -P metrics"
           fi
           mvn $MAVEN_ARGS
       - name: Upload build artifacts
