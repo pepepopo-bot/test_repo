@@ -25,7 +25,7 @@ jobs:
         env:
           GITHUB_REF: "refs/pull/${{ github.event.pull_request.number }}/merge"
       - name: Verify build
-        run:
+        run: |
           MAVEN_ARGS="verify"
           if [[ "${{ matrix.sonar }}" == "true" ]]; then
             MAVEN_ARGS=" -P metrics"
