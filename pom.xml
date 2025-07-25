@@ -93,7 +93,7 @@
         <jxrPluginVersion>3.3.2</jxrPluginVersion>
         <sonar.organization>pepe-bot</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.java.jacoco.reportPaths>target/jacoco.xml</sonar.java.jacoco.reportPaths>
+        <sonar.java.jacoco.xmlReportPaths>target/jacoco.xml</sonar.java.jacoco.xmlReportPaths>
         <sonar.java.pmd.reportPaths>target/pmd.xml</sonar.java.pmd.reportPaths>
         <sonar.java.checkstyle.reportPaths>target/checkstyle-result.xml</sonar.java.checkstyle.reportPaths>
         <sonar.java.spotbugs.reportPaths>target/spotbugs.xml</sonar.java.spotbugs.reportPaths>
