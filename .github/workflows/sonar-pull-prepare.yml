@@ -1,0 +1,45 @@
+name: Prepare analysis context
+
+on:
+  workflow_call:
+    inputs:
+      pull_request:
+        description: Associated pull request event
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    name: Prepare analysis context
+    steps:
+      - name: Copy event payload
+        env:
+          GITHUB_PULL_REQUEST: ${{ inputs.pull_request }}
+        run: |
+          cat "$GITHUB_EVENT_PATH" | jq '
+            .pull_request | 
+            {
+              number,
+              head: {
+                ref: .head.ref,
+                sha: .head.sha,
+                repo: {
+                  name: .head.repo.name
+                }
+              },
+              base: {
+                ref: .base.ref,
+                repo: {
+                  name: .base.repo.name
+                }
+              }
+            }' > pull_request.json
+      - name: Upload event payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: pull_request
+          path: pull_request.json
