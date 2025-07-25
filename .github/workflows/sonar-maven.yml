@@ -1,0 +1,97 @@
+name: Sonar Maven analysis
+
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        description: Build Java version
+        type: string
+        default: "21"
+      project_key:
+        description: Target project key in SonarQube server
+        type: string
+        required: true
+      pull_request:
+        description: Associated pull_request event
+        type: string
+    secrets:
+      sonar_token:
+        description: SonarQube analysis API token
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    name: Prepare parameters
+    outputs:
+      sonar_args: ${{ steps.params.outputs.sonar_args }}
+      check_ref: ${{ steps.params.outputs.check_ref }}
+      cache_key: ${{ steps.params.outputs.cache_key }}
+    steps:
+      - name: Prepare parameters
+        id: params
+        shell: bash
+        env:
+          PULL_REQUEST_EVENT: ${{ inputs.pull_request }}
+        run: |
+          SONAR_ARGS="-Dsonar.projectKey=${{ inputs.project_key }}"
+          if [[ $PULL_REQUEST_EVENT ]]; then
+            SONAR_ARGS="$SONAR_ARGS $(echo $PULL_REQUEST_EVENT | jq -r '[
+              "-Dsonar.pullrequest.key=\(.number)",
+              "-Dsonar.pullrequest.branch=\(.head.ref)",
+              "-Dsonar.pullrequest.base=\(.base.ref)",
+              "-Dsonar.pullrequest.github.repository=\(.base.repo.name)",
+              "-Dsonar.pullrequest.provider=GitHub"
+            ] | join(" ")')"
+          fi
+          echo "sonar_args=$SONAR_ARGS" >> $GITHUB_OUTPUT
+
+          CHECK_REF=main
+          if [[ $PULL_REQUEST_EVENT ]]; then
+            CHECK_REF=$(echo "$PULL_REQUEST_EVENT" | jq -r .head.sha)
+          fi
+          echo "check_ref=$CHECK_REF" >> "$GITHUB_OUTPUT"
+
+          CACHE_KEY=base
+          if [[ $PULL_REQUEST_EVENT ]]; then
+            CACHE_KEY=pull-$(echo "$PULL_REQUEST_EVENT" | jq -r .number)
+          fi
+          echo "cache_key=$CACHE_KEY" >> "$GITHUB_OUTPUT"
+  analyze:
+    runs-on: ubuntu-latest
+    name: Perform analysis
+    needs: prepare
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.check_ref }}
+          fetch-depth: 0
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "${{ inputs.java_version }}"
+      - name: Set up Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: sonar-maven-${{ runner.os }}-${{ runner.arch }}-${{ needs.prepare.outputs.cache_key }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            sonar-maven-${{ runner.os }}-${{ runner.arch }}-base-${{ hashFiles('**/pom.xml') }}
+            sonar-maven-${{ runner.os }}-${{ runner.arch }}-base-
+      - name: Set up Sonar cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: sonar-cache-${{ runner.os }}-${{ runner.arch }}-${{ needs.prepare.outputs.cache_key }}
+          restore-keys: sonar-cache-${{ runner.os }}-${{ runner.arch }}-base
+      - name: Run Sonar analysis
+        env:
+          SONAR_ARGS: ${{ needs.prepare.outputs.sonar_args }}
+          SONAR_TOKEN: ${{ secrets.sonar_token }}
+        run: |
+          mvn $SONAR_ARGS -P metrics verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
