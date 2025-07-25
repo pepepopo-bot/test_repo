@@ -26,7 +26,7 @@ jobs:
     name: Handle push event
     uses: ./.github/workflows/sonar-maven.yml
     with:
-      java-version: "17"
+      java_version: '17'
       project_key: 'peppopo-bot/test_repo'
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
