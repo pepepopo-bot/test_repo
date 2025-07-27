@@ -18,7 +18,7 @@ jobs:
     with:
       java_version: "17"
       workflow_run: ${{ toJSON(github.event.workflow_run) }}
-      project_key: 'peppopo-bot/test_repo'
+      project_key: 'pepepopo-bot_test_repo'
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
   trigger-push:
@@ -27,6 +27,6 @@ jobs:
     uses: ./.github/workflows/sonar-maven.yml
     with:
       java_version: '17'
-      project_key: 'peppopo-bot/test_repo'
+      project_key: 'pepepopo-bot_test_repo'
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
