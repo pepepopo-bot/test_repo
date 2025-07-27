@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
+
     name: "Java ${{ matrix.java }} build"
     steps:
       - name: Checkout project
