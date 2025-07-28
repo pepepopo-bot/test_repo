@@ -94,4 +94,4 @@ jobs:
           SONAR_ARGS: ${{ needs.prepare.outputs.sonar_args }}
           SONAR_TOKEN: ${{ secrets.sonar_token }}
         run: |
-          mvn $SONAR_ARGS -P metrics verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          mvn $SONAR_ARGS verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
