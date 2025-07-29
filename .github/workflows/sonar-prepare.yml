@@ -45,12 +45,11 @@ jobs:
           if [ -f pull_request.json ]; then
             echo "pull_request=$(cat pull_request.json | jq -c .)" >> "$GITHUB_OUTPUT"
 
-            if jq -e '.base.ref == "main" == ' pull_request.json; then
+            if jq -e '.base.ref == "main"' pull_request.json; then
               SONAR_ALLOWED=true
             fi
           fi
 
-          # jq test na push a head_branch
           if $(echo "$TRIGGER_EVENT" | jq -e '.event == "push" and .head_branch == "main"'); then
             SONAR_ALLOWED=true
           fi
