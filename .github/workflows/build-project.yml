@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,7 +26,7 @@ jobs:
         run: mvn -B verify
   sonar:
     needs: build
-    if: github.ref_name == 'main' && github.event_name == 'pull_request'
+    if: github.base_ref == 'main' && github.event_name == 'pull_request'
     name: Prepare analysis context
     uses: ./.github/workflows/sonar-pull-prepare.yml
     with:
