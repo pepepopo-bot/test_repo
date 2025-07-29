@@ -31,4 +31,3 @@ jobs:
     uses: ./.github/workflows/sonar-pull-prepare.yml
     with:
       pull_request: ${{ toJSON(github.event.pull_request) }}
-    asdfafaff
