@@ -2,8 +2,8 @@ name: backport.yml
 on:
   #  pull_request:
   #    types: [ closed ]
-  pull_request:
-  push:
+  pull_request_target:
+    types: [ labeled, closed ]
 
 jobs:
   backport:
