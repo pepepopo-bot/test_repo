@@ -28,14 +28,10 @@ jobs:
 
       - name: Fetch PR branch
         run: |
-          git fetch --no-tags --prune --depth=0 origin
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:backport
-        
-          git log --oneline origin/main..backport
-          COMMITS=$(git log --format="%H" origin/main..backport)
-          echo "$COMMITS"
+          git fetch origin main
+          git fetch origin pull/83/head:backport
+          COMMITS=$(git log --format="%H" main..backport)
           echo "$COMMITS" > commits.txt
-
       ## bude ten commit vždy jen jeden??
       - name: Cherry-pick to backport branch
         run: |
