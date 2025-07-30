@@ -37,6 +37,7 @@ jobs:
       - name: Cherry-pick to backport branch
         run: |
           git checkout prod
-          while read COMMIT; do
-            git cherry-pick $COMMIT || git cherry-pick --abort
-          done < commits.txt
+          file="commits.txt"
+          while read -r line; do
+            git cherry-pick "$line\n" || git cherry-pick --abort
+          done <$file
