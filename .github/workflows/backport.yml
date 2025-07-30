@@ -7,21 +7,20 @@ on:
 
 jobs:
   backport:
-    if:  github.event.pull_request.merged && contains(github.event.label.name, 'backport')
-    #      (
-    #        github.event_name == 'pull_request' &&
-    #        github.event.pull_request.merged == true &&
-    #        contains(github.event.pull_request.labels.*.name, 'backport')
-    #      ) ||
-    #      (
-    #        github.event_name == 'pull_request_target' &&
-    #        github.event.pull_request.state == 'closed' &&
-    #        contains(github.event.label.name, 'backport')
-    #      )
-
+    name: Backport
     runs-on: ubuntu-latest
+    # Only react to merged PRs for security reasons.
+    # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
+    if: >
+      github.event.pull_request.merged
+      && (
+        github.event.action == 'closed'
+        || (
+          github.event.action == 'labeled'
+          && contains(github.event.label.name, 'backport')
+        )
+      )
     steps:
-      # tree pro případ více různých sustaining label -> kam ten commit pujde
-      - name: Echo
-        run: |
-          echo "HELLO"
+      - uses: tibdex/backport@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
