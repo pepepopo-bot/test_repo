@@ -36,10 +36,24 @@ jobs:
       ## bude ten commit vždy jen jeden??
       - name: Cherry-pick to backport branch
         run: |
-          git config --global user.name "adela-domokosova"
-          git config --global user.email "adela.domokosova@gmail.com"
+          git config user.name "adela-domokosova"
+          git config user.email "adela.domokosova@gmail.com"
           git checkout prod
           while read -r line; do
             echo "$line"
             git cherry-pick "$line" || git cherry-pick --abort
           done <commits.txt
+
+          if [ "$failed" -eq 1 ]; then
+             echo "Cherry-pick failed. Commenting on PR..."
+             gh pr comment ${{ github.event.pull_request.number }} --body " Cannot cherry-pick due to merge conflict."
+             exit 1
+           else
+             echo "Cherry-pick succeeded. Pushing and creating PR..."
+             git push origin backport/prod-${{ github.event.pull_request.number }}
+             gh pr create \
+               --title "Backport PR #${{ github.event.pull_request.number }} to prod" \
+               --body "Cherry-picked changes from #${{ github.event.pull_request.number }} to \`prod\`." \
+               --base prod \
+               --head backport/prod-${{ github.event.pull_request.number }}
+           fi
