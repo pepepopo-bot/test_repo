@@ -29,8 +29,10 @@ jobs:
       - name: Fetch PR branch
         run: |
           git fetch origin main
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-          COMMITS=$(git log --format="%H" origin/main..pr-branch)
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:backport
+          echo "origin pull/${{ github.event.pull_request.number }}/head:backport"
+          COMMITS=$(git log --format="%H" origin/main..backport)
+          echo "$COMMITS"
           echo "$COMMITS" > commits.txt
 
       ## bude ten commit vždy jen jeden??
