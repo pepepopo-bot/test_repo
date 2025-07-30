@@ -31,6 +31,7 @@ jobs:
           git fetch origin main
           git fetch origin pull/83/head:backport
           COMMITS=$(git log --format="%H" main..backport)
+          echo "$COMMITS"
           echo "$COMMITS" > commits.txt
       ## bude ten commit vždy jen jeden??
       - name: Cherry-pick to backport branch
@@ -38,8 +39,7 @@ jobs:
           git config --global user.name "adela-domokosova"
           git config --global user.email "adela.domokosova@gmail.com"
           git checkout prod
-          file="commits.txt"
           while read -r line; do
             echo "$line"
             git cherry-pick "$line" || git cherry-pick --abort
-          done <$file
+          done <commits.txt
