@@ -21,6 +21,22 @@ jobs:
         )
       )
     steps:
-      - uses: tibdex/backport@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # důležité pro cherry-pick
+
+      - name: Fetch PR branch
+        run: |
+          git fetch origin main
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+          COMMITS=$(git log --format="%H" origin/main..pr-branch)
+          echo "$COMMITS" > commits.txt
+
+      ## bude ten commit vždy jen jeden??
+      - name: Cherry-pick to backport branch
+        run: |
+          git checkout prod
+          while read COMMIT; do
+            git cherry-pick $COMMIT || git cherry-pick --abort
+          done < commits.txt
