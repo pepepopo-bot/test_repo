@@ -48,6 +48,7 @@ jobs:
             git cherry-pick --abort
             failed=1
             break
+            }
           done <commits.txt
 
           if [ "$failed" -eq 1 ]; then
