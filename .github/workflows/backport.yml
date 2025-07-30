@@ -35,7 +35,6 @@ jobs:
           COMMITS=$(git log --format="%H" origin/main..backport)
           echo "$COMMITS"
           echo "$COMMITS" > commits.txt
-
       ## bude ten commit vždy jen jeden??
       - name: Cherry-pick to backport branch
         run: |
