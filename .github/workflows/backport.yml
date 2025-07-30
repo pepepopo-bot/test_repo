@@ -39,8 +39,8 @@ jobs:
       ## bude ten commit vždy jen jeden??
       - name: Cherry-pick to backport branch
         run: |
-          git config user.name "adela-domokosova"
-          git config user.email "adela.domokosova@gmail.com"
+          git config --global user.name "adela-domokosova"
+          git config --global user.email "adela.domokosova@gmail.com"
           git checkout prod
           file="commits.txt"
           while read -r line; do
