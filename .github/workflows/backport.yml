@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only react to merged PRs for security reasons.
     # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
-    if: github.event.action == 'labeled' && contains(github.event.label.name, 'backport')
+    if: github.event.action == 'labeled'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
