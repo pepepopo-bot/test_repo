@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: testMessage
-        run: gh pr comment $env.PR_NUMBER --body "Cannot cherrypick due to conflict." --repo "pepepopo-bot/test-repo"
+        run: gh pr comment ${{ env.PR_NUMBER }} --body "Cannot cherrypick due to conflict." --repo "pepepopo-bot/test_repo"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
