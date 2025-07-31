@@ -5,14 +5,15 @@ on:
 
 jobs:
   PR-message:
+    permissions: write-all
     env:
       PR-NUMBER: ${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
     steps:
-#      - name: testMessage
-#        run: gh pr comment 93 --body "Cannot cherrypick due to conflict." --repo "pepepopo-bot/test_repo"
-#        env:
-#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: testMessage
+        run: gh pr comment 93 --body "Cannot cherrypick due to conflict." --repo "pepepopo-bot/test_repo"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: API comment
         run: |
           curl -L \
