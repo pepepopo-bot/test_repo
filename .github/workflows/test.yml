@@ -1,0 +1,18 @@
+name: test.yml
+on:
+  pull_request:
+    types: [ labeled, opened, closed, reopened ]
+  push:
+
+jobs:
+  PR-message:
+    env:
+      PR-NUMBER: ${{ github.event.pull_request.number }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: testMessage
+        run: gh pr comment ${{ env.PR_NUMBER }} --body "Cannot cherrypick due to conflict."
