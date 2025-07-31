@@ -33,7 +33,8 @@ jobs:
           COMMITS=$(git log --format="%H" main..backport)
           echo "$COMMITS"
           echo "$COMMITS" > commits.txt
-      ## bude ten commit vždy jen jeden??
+      ## co merge commity
+      ## GH token/ app token/PAT
       - name: Cherry-pick to backport branch
         run: |
           git config user.name "adela-domokosova"
