@@ -1,9 +1,9 @@
 name: backport.yml
 on:
-  #  pull_request:
-  #    types: [ closed ]
-  pull_request_target:
-    types: [ labeled, closed ]
+    pull_request:
+      types: [ closed, labeled ]
+  # pull_request_target:
+  #   types: [ labeled, closed ]
 
 jobs:
   backport:
@@ -24,7 +24,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # důležité pro cherry-pick
+          fetch-depth: 0 
 
       - name: Fetch PR branch
         run: |
