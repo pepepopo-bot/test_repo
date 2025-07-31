@@ -25,3 +25,4 @@ jobs:
             -d '{"body":"Great stuff!","commit_id":"6dcb09b5b57875f334f61aebed695e2e4193db5e","path":"file1.txt","start_line":1,"start_side":"RIGHT","line":2,"side":"RIGHT"}'
         env:
           PAT: ${{ secrets.PAT }}
+          PR-NUMBER: ${{ github.event.pull_request.number }}
