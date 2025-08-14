@@ -25,9 +25,7 @@ jobs:
 
       - id: commits
         run: |
-          COMMITS=$(git log --format="%H" ${{ env.BACKPORT_TARGET_BRANCH }}..pr-branch)
-          echo "$COMMITS"
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          git log --format="%H" ${{ env.BACKPORT_TARGET_BRANCH }}..pr-branch > commits.txt
 
       - name: Configure Git identity
         run: |
@@ -36,13 +34,13 @@ jobs:
 
       - run: |
           git checkout -b ${{ env.BACKPORT_BRANCH }}
-          for c in ${{ steps.commits.outputs.commits }}; do
-            git cherry-pick "$c" || {
-              echo "Conflict in $c"
-              git cherry-pick --abort
-              exit 1
-            }
-          done
+          while read -r sha; do
+            git cherry-pick "$sha" || {
+            echo "Conflict in $sha"
+            git cherry-pick --abort
+            exit 1
+          }
+          done < commits.txt
 
       - run: git push origin ${{ env.BACKPORT_BRANCH }}
 
@@ -57,5 +55,4 @@ jobs:
               --arg head "${{ env.BACKPORT_BRANCH }}" \
               --arg base "${{ env.BACKPORT_TARGET_BRANCH }}" \
               '{title: $title, body: $body, head: $head, base: $base}')"
-
 # možnost konfliktu
