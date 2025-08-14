@@ -24,3 +24,4 @@ jobs:
             -d '{"title":"Amazing new feature","body":"Please pull these awesome changes in!","head":"adela-domokosova:backport","base":"main"}'
         env:
           PAT: ${{ secrets.GITHUB_TOKEN }}
+
