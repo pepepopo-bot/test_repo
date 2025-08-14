@@ -57,5 +57,4 @@ jobs:
               --arg head "${{ env.BACKPORT_BRANCH }}" \
               --arg base "${{ env.BACKPORT_TARGET_BRANCH }}" \
               '{title: $title, body: $body, head: $head, base: $base}')"
-
 # možnost konfliktu
