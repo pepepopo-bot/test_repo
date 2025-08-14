@@ -12,7 +12,7 @@ jobs:
       contents: write
       pull-requests: write
     env:
-      BACKPORT_TARGET_BRANCH: main
+      BACKPORT_TARGET_BRANCH: prod
       BACKPORT_BRANCH: backport/pr-${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,11 @@ jobs:
           COMMITS=$(git log --format="%H" ${{ env.BACKPORT_TARGET_BRANCH }}..pr-branch)
           echo "$COMMITS"
           echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - run: |
           git checkout -b ${{ env.BACKPORT_BRANCH }}
