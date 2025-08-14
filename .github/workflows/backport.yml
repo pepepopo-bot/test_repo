@@ -1,48 +1,99 @@
 name: backport.yml
 on:
-  #  pull_request:
-  #    types: [ closed ]
-  pull_request_target:
-    types: [ labeled, closed ]
-
+    #pull_request:
+    #  types: [ closed, labeled ]
+    #pull_request_target:
+    #  types: [ labeled, closed ]
+  label:
+    types:
+      - "created"
 jobs:
   backport:
     name: Backport
     runs-on: ubuntu-latest
     # Only react to merged PRs for security reasons.
     # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
-#    if: >
-#      github.event.pull_request.merged
-#      && (
-#        github.event.action == 'closed'
-#        || (
-#          github.event.action == 'labeled'
-#          && contains(github.event.label.name, 'backport')
-#        )
-#      )
+    if: >
+      github.event.pull_request.merged
+      && (
+        github.event.action == 'closed'
+        || (
+          github.event.action == 'labeled'
+          && contains(github.event.label.name, 'backport')
+        )
+      )
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.name }}
+
+    ## vars PR_number,
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # důležité pro cherry-pick
+          fetch-depth: 0
 
       - name: Fetch PR branch
         run: |
-          git fetch origin main
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:backport
-          COMMITS=$(git log --format="%H" main..backport)
-          echo "$COMMITS"
-          echo "$COMMITS" > commits.txt
 
-      ## bude ten commit vždy jen jeden??
+#          git fetch origin main
+#          git fetch origin pull/${{ env.PR_NUMBER }}/head:backport
+#          COMMITS=$(git log --format="%H" main..backport)
+#          echo "$COMMITS"
+#          echo "$COMMITS" > commits.txt
+
+      # api call for merge commit sha insted
+      # create variable with the sha
+
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      ## GH token/ app token/PAT
+      # gh api or gh cli
       - name: Cherry-pick to backport branch
         run: |
+          git config user.name "adela-domokosova"
+          git config user.email "adela.domokosova@gmail.com"
+               
+          git checkou -B backport/pr-${{ env.PR_NUMBER }}
+          git clone 
           git checkout prod
-          file="commits.txt"
-          if [-f commits.txt]; then
-            echo 'True'
-          fi
+          
+          failed=0
+          
           while read -r line; do
-            echo "$line"
-            git cherry-pick "$line" || git cherry-pick --abort
-          done <$file
+            git cherry-pick "$line" || {
+            echo "Conflict"
+            git cherry-pick --abort
+            failed=1
+            break
+            }
+          done <commits.txt
+
+          if [ "$failed" -eq 1 ]; then
+            echo "Fail, comment"
+            gh pr comment ${{ env.PR_NUMBER }} --body "Cannot cherrypick due to conflict."
+            exit 1
+          else
+            echo "Cherry-pick OK, pushing..."
+
+        # push
+            git push origin backport/prod-${{ env.PR_NUMBER }}
+        # create PR
+               
+            gh pr --title "Backport ${{ env.PR_TITLE }}"
+            curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+            \"title\": \"Backport PR #${{ github.event.pull_request.number }} to prod\",
+            \"head\": \"backport/prod-${{ github.event.pull_request.number }}\",
+            \"base\": \"prod\",
+            \"body\": \"Cherry-picked changes from #${{ github.event.pull_request.number }} to \`prod\`.\"
+          }" \
+            https://api.github.com/repos/${{ github.repository }}/pulls
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
