@@ -49,6 +49,13 @@ jobs:
           }
           done < commits.txt
 
+      - name: Comment PR if conflict
+      #add some condition to only run when conflict arises
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            Hello world ! :wave:
+
       - run: git push origin ${{ env.BACKPORT_BRANCH }}
 
       - run: |
