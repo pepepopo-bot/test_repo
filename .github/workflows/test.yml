@@ -49,7 +49,10 @@ jobs:
             git cherry-pick "$sha" || {
             echo "Conflict in $sha"
             git cherry-pick --abort
-            exit 1
+        # exit 1 -> nahradit if statementy na dalších krocíxh této workflow
+        # tento krok vždy proběhne ale podle jeho outcome pak proběhnou další kroky
+
+        #nemám pokrytou možnost merge commitů ->problém dvou parentů
           }
           done < commits.txt
 
