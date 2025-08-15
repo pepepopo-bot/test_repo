@@ -45,16 +45,19 @@ jobs:
         id: cherry
         run: |
           git checkout -b ${{ env.BACKPORT_BRANCH }}
+          conflict=false
           while read -r sha; do
-            git cherry-pick "$sha" || {
+          if ! git cherry-pick "$sha"; then
             echo "Conflict in $sha"
             git cherry-pick --abort
+            conflict=true
+          fi
+          done < commits.txt
+          echo "conflict=$conflict" >> "$GITHUB_OUTPUT"
         # exit 1 -> nahradit if statementy na dalších krocíxh této workflow
         # tento krok vždy proběhne ale podle jeho outcome pak proběhnou další kroky
 
         #nemám pokrytou možnost merge commitů ->problém dvou parentů
-          }
-          done < commits.txt
 
       - name: Comment PR if conflict
       #add some condition to only run when conflict arises
