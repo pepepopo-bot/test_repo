@@ -15,27 +15,28 @@ jobs:
     env:
       BACKPORT_TARGET_BRANCH: prod #branch kam chci přidat ty PR commity
       BACKPORT_BRANCH: backport/pr-${{ github.event.pull_request.number }} #nová branch pro push a vytvoreni PR
-      PR_BASE_BRANCH: ${{ github.event.pullrequest.base.ref }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.PR_BASE_BRANCH }}
+          ref: ${{ env.BACKPORT_TARGET_BRANCH }}
           fetch-depth: 0
       # checkout target branch PR (main)
       # github.event.pull_request.head.sha is the right way to get SHA of the most recent commit before the pull request was closed.
 
-      - run: |
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-        #získám kod PR a uložím si ho jako pr-brach
-
-      - id: commits
-        run: |
-          git log --format="%H" ${{ env.PR_BASE_BRANCH }}..pr-branch > commits.txt
-        #porovnat branche a zapsat diff commity
       - name: Configure Git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Get PR commit SHAs
+        run: |
+          curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+            | jq -r '.[].sha' > commits.txt
+          cat commits.txt
+      # nelze dělat rozdíl větví, je nutné přes api získat jen commity toho PR
 
       - name: add message for conflict
         run: |
