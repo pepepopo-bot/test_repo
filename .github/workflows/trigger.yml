@@ -11,17 +11,19 @@ jobs:
     if: |
       (
         github.event_name == 'pull_request_target' &&
-        github.event.action == 'labeled' &&
-        github.event.label.name == 'run-check'
+        github.event.action == 'labeled'
       )
       ||
       (
         github.event_name == 'issues' &&
         github.event.action == 'labeled' &&
-        github.event.issue.pull_request &&
-        github.event.label.name == 'run-check'
+        github.event.issue.pull_request
       )
     runs-on: ubuntu-latest
     steps:
       - name: test
-        run: echo "test"
+        run: |
+          echo "${{ github.event_name }}"
+          echo "${{ github.event.action }}"
+          echo "${{ github.event.label.name }}"
+          
