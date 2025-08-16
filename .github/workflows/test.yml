@@ -1,5 +1,8 @@
 name: test.yml
 # nuné v cílovém repu povolit vytváření PR v gh actions!!!
+# vyřešit spouštěcí mechanismus
+# co merge commits
+# mechanismus pro více BACKPORT_TARGET_BRANCH
 on:
   pull_request_target:
     types: [labeled]
@@ -30,6 +33,7 @@ jobs:
 
       - name: Fetch PR branch
         run: git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+      # předpokládám, že commity jsou z externího forku a musím je fetchnout
 
       - name: Get PR commit SHAs
         run: |

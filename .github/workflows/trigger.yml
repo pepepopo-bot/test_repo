@@ -1,0 +1,27 @@
+name: trigger.yml
+
+on:
+  pull_request_target:
+    types: [labeled]
+  issues:
+    types: [labeled]
+
+jobs:
+  run-check:
+    if: |
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'run-check'
+      )
+      ||
+      (
+        github.event_name == 'issues' &&
+        github.event.action == 'labeled' &&
+        github.event.issue.pull_request &&
+        github.event.label.name == 'run-check'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: echo "test"
