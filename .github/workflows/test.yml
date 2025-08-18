@@ -1,77 +1,27 @@
 name: test.yml
-# nuné v cílovém repu povolit vytváření PR v gh actions!!!
-# vyřešit spouštěcí mechanismus
-# co merge commits
-# mechanismus pro více BACKPORT_TARGET_BRANCH
+
 on:
   pull_request_target:
     types: [labeled]
+    #types: [labeled, closed]
+  workflow_dispatch:
+
 
 jobs:
   backport:
-    if: github.event.label.name == 'backport'
+    #if: github.event.label.name == 'backport' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      # možna upravit práva
       contents: write
-      pull-requests: write
+      # no pull-request: write
     env:
       BACKPORT_TARGET_BRANCH: prod #branch kam chci přidat ty PR commity
-      BACKPORT_BRANCH: backport/pr-${{ github.event.pull_request.number }} #nová branch pro push a vytvoreni PR
+      BACKPORT_BRANCH: backport/pr-asd #nová branch pro push a vytvoreni PR
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.BACKPORT_TARGET_BRANCH }}
-          fetch-depth: 0
-      # checkout target branch PR (main)
-      # github.event.pull_request.head.sha is the right way to get SHA of the most recent commit before the pull request was closed.
-
-      - name: Configure Git identity
+      - name: Save BACKPORT_TARGET from label
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Fetch PR branch
-        run: git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-      # předpokládám, že commity jsou z externího forku a musím je fetchnout
-
-      - name: Get PR commit SHAs
-        run: |
-          curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
-            | jq -r '.[].sha' > commits.txt
-          cat commits.txt
-      # nelze dělat rozdíl větví, je nutné přes api získat jen commity toho PR
-
-      - name: add message for conflict
-        id: cherry
-        run: |
-          git checkout -b ${{ env.BACKPORT_BRANCH }}
-          conflict=false
-          while read -r sha; do
-          if ! git cherry-pick "$sha"; then
-            echo "Conflict in $sha"
-            git cherry-pick --abort
-            conflict=true
-          fi
-          done < commits.txt
-          echo "conflict=$conflict" >> "$GITHUB_OUTPUT"
-        # exit 1 -> nahradit if statementy na dalších krocíxh této workflow
-        # tento krok vždy proběhne ale podle jeho outcome pak proběhnou další kroky
-
-        #nemám pokrytou možnost merge commitů ->problém dvou parentů
-
-      - name: Comment PR if conflict
-      #add some condition to only run when conflict arises
-      #  if: steps.cherry.outcome ==
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          message: |
-            Hello world ! :wave:
-
-      - run: git push origin ${{ env.BACKPORT_BRANCH }}
+          echo "${{ github.event.label.name }}" >> GITHUB
+          echo "startsWith(github.event.label.name, 'backport-')
 
       - run: |
           curl -s -X POST \
@@ -84,11 +34,3 @@ jobs:
               --arg head "${{ env.BACKPORT_BRANCH }}" \
               --arg base "${{ env.BACKPORT_TARGET_BRANCH }}" \
               '{title: $title, body: $body, head: $head, base: $base}')"
-# možnost konfliktu
-# ! [remote rejected] backport/pr-100 -> backport/pr-100 (refusing to allow a GitHub App to create or update workflow .github/workflows/test.yml without workflows permission) error: failed to push some refs to 'https://github.com/pepepopo-bot/test_repo' Error: Process completed with exit code 1.
-# nejdou takto backportovat změny workflows -> gh token nemá právo workflows: write
-
-#je toto použilené v případě, kdy už bylo PR merged a pak se přidá label?
-
-#  ref: ${{ github.event.pull_request.head.sha }} use this insted of "refs/pull/${{ github.event.number }}/merge" -> raději volat fixed sha commit, menší riziko prohození kodu
-# or Checkout refs/pull/${{ github.event.number }}/merge and then verify HEAD^ equals github.event.pull_request.head.sha

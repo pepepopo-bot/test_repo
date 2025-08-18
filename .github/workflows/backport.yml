@@ -1,99 +1,91 @@
-name: backport.yml
+name: test.yml
+
 on:
-    #pull_request:
-    #  types: [ closed, labeled ]
-    #pull_request_target:
-    #  types: [ labeled, closed ]
-  label:
-    types:
-      - "created"
+  pull_request_target:
+    types: [labeled]
+    #types: [labeled, closed]
+  workflow_dispatch:
+
+
 jobs:
   backport:
-    name: Backport
+    #if: github.event.pull_request.merged == true && startsWith(github.event.label.name, 'backport-')
     runs-on: ubuntu-latest
-    # Only react to merged PRs for security reasons.
-    # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
-    if: >
-      github.event.pull_request.merged
-      && (
-        github.event.action == 'closed'
-        || (
-          github.event.action == 'labeled'
-          && contains(github.event.label.name, 'backport')
-        )
-      )
+    permissions:
+      contents: write
+      pull-requests: write
     env:
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      PR_TITLE: ${{ github.event.pull_request.name }}
-
-    ## vars PR_number,
+      BACKPORT_TARGET: prod
+      BACKPORT_BRANCH: backport/pr-${{ github.event.pull_request.number }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          ref: ${{ env.BACKPORT_TARGET_BRANCH }}
           fetch-depth: 0
 
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions"
+          git config user.email "<>"
+# bude to ok pro případ kdy backportuju do dvou větví -> vytvářím dvě různá PR?
       - name: Fetch PR branch
+        run: git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+      # předpokládám, že commity jsou z externího forku a musím je fetchnout
+
+      - name: Get PR commit SHAs
         run: |
+          curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+            | jq -r '.[].sha' > commits.txt
+          cat commits.txt
+      # nelze dělat rozdíl větví, je nutné přes api získat jen commity toho PR
 
-#          git fetch origin main
-#          git fetch origin pull/${{ env.PR_NUMBER }}/head:backport
-#          COMMITS=$(git log --format="%H" main..backport)
-#          echo "$COMMITS"
-#          echo "$COMMITS" > commits.txt
-
-      # api call for merge commit sha insted
-      # create variable with the sha
-
-      - name: Authenticate GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      ## GH token/ app token/PAT
-      # gh api or gh cli
-      - name: Cherry-pick to backport branch
+      - name: add message for conflict
+        id: cherry
         run: |
-          git config user.name "adela-domokosova"
-          git config user.email "adela.domokosova@gmail.com"
-               
-          git checkou -B backport/pr-${{ env.PR_NUMBER }}
-          git clone 
-          git checkout prod
-          
-          failed=0
-          
-          while read -r line; do
-            git cherry-pick "$line" || {
-            echo "Conflict"
+          git checkout -b ${{ env.BACKPORT_BRANCH }}
+          conflict=false
+          while read -r sha; do
+          if ! git cherry-pick "$sha"; then
+            echo "Conflict in $sha"
             git cherry-pick --abort
-            failed=1
-            break
-            }
-          done <commits.txt
-
-          if [ "$failed" -eq 1 ]; then
-            echo "Fail, comment"
-            gh pr comment ${{ env.PR_NUMBER }} --body "Cannot cherrypick due to conflict."
-            exit 1
-          else
-            echo "Cherry-pick OK, pushing..."
-
-        # push
-            git push origin backport/prod-${{ env.PR_NUMBER }}
-        # create PR
-               
-            gh pr --title "Backport ${{ env.PR_TITLE }}"
-            curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{
-            \"title\": \"Backport PR #${{ github.event.pull_request.number }} to prod\",
-            \"head\": \"backport/prod-${{ github.event.pull_request.number }}\",
-            \"base\": \"prod\",
-            \"body\": \"Cherry-picked changes from #${{ github.event.pull_request.number }} to \`prod\`.\"
-          }" \
-            https://api.github.com/repos/${{ github.repository }}/pulls
+            conflict=true
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          done < commits.txt
+          echo "conflict=$conflict" >> "$GITHUB_OUTPUT"
+        # exit 1 -> nahradit if statementy na dalších krocíxh této workflow
+        # tento krok vždy proběhne ale podle jeho outcome pak proběhnou další kroky
+
+        #nemám pokrytou možnost merge commitů ->problém dvou parentů
+
+      - name: Comment PR if conflict
+        #add some condition to only run when conflict arises
+        #  if: steps.cherry.outcome ==
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            Hello world ! :wave:
+
+      - run: git push origin ${{ env.BACKPORT_BRANCH }}
+
+      - run: |
+          curl -s -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/pulls \
+            -d "$(jq -n \
+              --arg title "Backport #${{ github.event.pull_request.number }}" \
+              --arg body "Automatický backport PR #${{ github.event.pull_request.number }}" \
+              --arg head "${{ env.BACKPORT_BRANCH }}" \
+              --arg base "${{ env.BACKPORT_TARGET_BRANCH }}" \
+              '{title: $title, body: $body, head: $head, base: $base}')"
+# možnost konfliktu
+# ! [remote rejected] backport/pr-100 -> backport/pr-100 (refusing to allow a GitHub App to create or update workflow .github/workflows/test.yml without workflows permission) error: failed to push some refs to 'https://github.com/pepepopo-bot/test_repo' Error: Process completed with exit code 1.
+# nejdou takto backportovat změny workflows -> gh token nemá právo workflows: write
+
+#je toto použilené v případě, kdy už bylo PR merged a pak se přidá label?
+
+#  ref: ${{ github.event.pull_request.head.sha }} use this insted of "refs/pull/${{ github.event.number }}/merge" -> raději volat fixed sha commit, menší riziko prohození kodu
+# or Checkout refs/pull/${{ github.event.number }}/merge and then verify HEAD^ equals github.event.pull_request.head.sha
