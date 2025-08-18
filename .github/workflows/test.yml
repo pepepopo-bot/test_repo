@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Save BACKPORT_TARGET from label
         run: |
-          echo "${{ github.event.label.name }}" >> GITHUB
+          echo "${{ github.event.label.name }}"
           echo "startsWith(github.event.label.name, 'backport-')
 
       - run: |
