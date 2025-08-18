@@ -6,7 +6,6 @@ on:
     #types: [labeled, closed]
   workflow_dispatch:
 
-
 jobs:
   backport:
     #if: github.event.label.name == 'backport' && github.event.pull_request.merged == true
@@ -19,6 +18,7 @@ jobs:
       BACKPORT_BRANCH: backport/pr-asd #nová branch pro push a vytvoreni PR
     steps:
       - name: Save BACKPORT_TARGET from label
+        if: github.event_name != 'workflow_dispatch'
         run: |
           echo "${{ github.event.label.name }}"
           echo "startsWith(github.event.label.name, 'backport-')
