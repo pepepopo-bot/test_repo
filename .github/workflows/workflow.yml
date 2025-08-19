@@ -1,0 +1,16 @@
+name: workflow.yml
+on:
+  pull_request_target:
+    types: [labeled]
+
+
+jobs:
+  backport:
+    if: github.event.label.name == 'backport-prod'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Save BACKPORT_TARGET from label
+        run: |
+          echo "hello"
