@@ -2,8 +2,7 @@ name: Backport
 
 on:
   pull_request_target:
-    types: [labeled, closed]
-
+    types: [labeled]
 jobs:
   Backport:
     if: github.event.pull_request.merged == true && startsWith(github.event.label.name, 'backport-')
