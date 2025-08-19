@@ -2,49 +2,48 @@ name: test.yml
 
 on:
   pull_request_target:
-    types: [labeled]
-    #types: [labeled, closed]
-  workflow_dispatch:
-
+    types: [labeled, closed]
 
 jobs:
-  backport:
-    #if: github.event.pull_request.merged == true && startsWith(github.event.label.name, 'backport-')
+  Backport:
+    if: github.event.pull_request.merged == true && startsWith(github.event.label.name, 'backport-')
+    # toto bude problém v případě zavření PR bez labelu? -> startsWith(github.event.label.name, 'backport-')
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    env:
-      BACKPORT_TARGET: prod
-      BACKPORT_BRANCH: backport/pr-${{ github.event.pull_request.number }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Set environment variables
+        run: |
+        # set backport target branch from triggering label
+          LABEL=${{ github.event.label.name }}
+          BRANCH="${LABEL#backport-}"
+          echo "BACKPORT_TARGET=$BRANCH" >> $GITHUB_ENV
+        # set backport branch for PR
+          BACKPORT="backport/pr-${{ github.event.pull_request.number }}-${{ env.BACKPORT_TARGET }}"
+          echo "BACKPORT_BRANCH=$BACKPORT" >> $GITHUB_ENV
+
+      - name: Checkout backport target branch
+        uses: actions/checkout@v4
         with:
-          ref: ${{ env.BACKPORT_TARGET_BRANCH }}
+          ref: ${{ env.BACKPORT_TARGET }}
           fetch-depth: 0
 
       - name: Configure Git identity
         run: |
           git config user.name "github-actions"
           git config user.email "<>"
-# bude to ok pro případ kdy backportuju do dvou větví -> vytvářím dvě různá PR?
-      - name: Fetch PR branch
-        run: git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-      # předpokládám, že commity jsou z externího forku a musím je fetchnout
+      # https://github.com/orgs/community/discussions/41101
 
-      - name: Get PR commit SHAs
-        run: |
-          curl -s \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
-            | jq -r '.[].sha' > commits.txt
-          cat commits.txt
-      # nelze dělat rozdíl větví, je nutné přes api získat jen commity toho PR
+      #fetch pullrequest base????
 
-      - name: add message for conflict
-        id: cherry
+      # vim že mužu počitat s merge commitem -> vezmu leveho parenta (commity z feature větve) od jednomo merge commitu k předposlednimu jen ne přes main ale přes feature větev
+      - name: Get PR commits and cherry-pick
         run: |
+          COMMITS=$(git log --pretty-format:"%H" --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)
+          echo "$COMMITS" >> commits.txt
+        #uložit commity?
+        #spojit dohromady s těmi cherry pick a fetch?
           git checkout -b ${{ env.BACKPORT_BRANCH }}
           conflict=false
           while read -r sha; do
@@ -55,37 +54,41 @@ jobs:
           fi
           done < commits.txt
           echo "conflict=$conflict" >> "$GITHUB_OUTPUT"
-        # exit 1 -> nahradit if statementy na dalších krocíxh této workflow
-        # tento krok vždy proběhne ale podle jeho outcome pak proběhnou další kroky
-
-        #nemám pokrytou možnost merge commitů ->problém dvou parentů
-
-      - name: Comment PR if conflict
-        #add some condition to only run when conflict arises
-        #  if: steps.cherry.outcome ==
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          message: |
-            Hello world ! :wave:
 
       - run: git push origin ${{ env.BACKPORT_BRANCH }}
+        ## přidat k jinemu kroku
 
-      - run: |
-          curl -s -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/pulls \
-            -d "$(jq -n \
-              --arg title "Backport #${{ github.event.pull_request.number }}" \
-              --arg body "Automatický backport PR #${{ github.event.pull_request.number }}" \
-              --arg head "${{ env.BACKPORT_BRANCH }}" \
-              --arg base "${{ env.BACKPORT_TARGET_BRANCH }}" \
-              '{title: $title, body: $body, head: $head, base: $base}')"
-# možnost konfliktu
-# ! [remote rejected] backport/pr-100 -> backport/pr-100 (refusing to allow a GitHub App to create or update workflow .github/workflows/test.yml without workflows permission) error: failed to push some refs to 'https://github.com/pepepopo-bot/test_repo' Error: Process completed with exit code 1.
-# nejdou takto backportovat změny workflows -> gh token nemá právo workflows: write
+      - name: Comment PR if conflict
+        #if: ???
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Conflict during cherrypick from PR #${{ github.event.pull_request.number }} to branch ${{ env.BACKPORT_TARGET }}'
+            })
 
-#je toto použilené v případě, kdy už bylo PR merged a pak se přidá label?
-
-#  ref: ${{ github.event.pull_request.head.sha }} use this insted of "refs/pull/${{ github.event.number }}/merge" -> raději volat fixed sha commit, menší riziko prohození kodu
-# or Checkout refs/pull/${{ github.event.number }}/merge and then verify HEAD^ equals github.event.pull_request.head.sha
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+              const { repo, owner } = context.repo;
+              const result = await github.rest.pulls.create({
+                title: 'Backport PR #${{ github.event.pull_request.number }} to ${{ env.BACKPORT_TARGET }}',
+                owner,
+                repo,
+                head: '${{ env.BACKPORT_BRANCH }}',
+                base: '${{ env.BACKPORT_TARGET }}',
+                body: [
+                  'This PR is auto-generated.',
+                ].join('\n')
+              });
+              github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: result.data.number,
+                labels: []
+              });
