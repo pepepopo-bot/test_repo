@@ -14,13 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     name: Prepare parameters
     steps:
-      name: Prepare parameters
+    - name: Prepare parameters
       uses: actions/github-script@v7
-      # Pokud je event "closed", tak musim resit vsechny existujici labely
-      # Pokud je vent "labeled", tak resim jen ten konkretni label
-      # Vystupem bude muset byt parametr pro matrix job, protoze muze byt PR zavrene
-      #   napr. s dvema labely backport-A a backport-B
-      # musi mit jako output JSON.stringify([ targets ])
+      with:
+        script: |
+          const labels = context.payload.pull_request.labels.map(l => l.name)
+          const targets = labels
+            .filter(l => l.startsWith("backport-"))
+            .map(l => l.replace("backport-", ""))
+
+          core.setOutput("targets", JSON.stringify(targets))
+
   backport:
     runs-on: ubuntu-latest
     needs: prepare
@@ -84,3 +88,10 @@ jobs:
                 base: process.env.BACKPORT_TARGET,
                 body: 'This PR is auto-generated.'
               });
+
+
+      # Pokud je event "closed", tak musim resit vsechny existujici labely
+      # Pokud je vent "labeled", tak resim jen ten konkretni label
+      # Vystupem bude muset byt parametr pro matrix job, protoze muze byt PR zavrene
+      #   napr. s dvema labely backport-A a backport-B
+      # musi mit jako output JSON.stringify([ targets ])
