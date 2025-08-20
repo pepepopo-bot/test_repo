@@ -32,7 +32,7 @@ jobs:
       - name: Get PR commits and cherry-pick
         id: cherry-pick
         run: |
-          COMMITS=$(git log --pretty-format:"%H" --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)
+          COMMITS=$(git log --pretty="format:%H" --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)
           echo "$COMMITS" >> commits.txt
           git checkout -b $BACKPORT_BRANCH
           conflict=false
