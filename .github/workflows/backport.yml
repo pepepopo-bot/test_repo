@@ -2,10 +2,16 @@ name: Backport
 
 on:
   pull_request_target:
-    types: [labeled]
+    types: [labeled, closed]
 
 jobs:
   backport:
+    if: >
+      github.event.pull_request.merged &&
+      (
+        contains(join(github.event.pull_request.labels.*.name, ','), 'backport-')
+        || startsWith(github.event.label.name, 'backport-')
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
