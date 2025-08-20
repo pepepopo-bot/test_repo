@@ -52,7 +52,7 @@ jobs:
     needs: prepare
     strategy:
       matrix:
-        target: ${{ needs.prepare.outputs.targets }}
+        target: ${{ fromJSON(needs.prepare.outputs.targets) }}
     name: Process backport
     steps:
       - name: Checkout target branch
