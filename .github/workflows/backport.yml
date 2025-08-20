@@ -49,7 +49,7 @@ jobs:
           git push origin $BACKPORT_BRANCH
           echo "conflict=false" >> $GITHUB_OUTPUT
 
-      - name: Comment PR if conflict
+      - name: Comment Pull Request in case of conflict
         if: steps.cherry-pick.outputs.conflict == 'true'
         uses: actions/github-script@v7
         with:
@@ -82,5 +82,3 @@ jobs:
                 issue_number: result.data.number,
                 labels: ['backport']
               });
-
-# labels: ['backport'] -> když to chybí, tak Pr se vytvoří, ale workflow selže, praznou [] ->taky nefungovalo
