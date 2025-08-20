@@ -15,7 +15,7 @@ jobs:
           LABEL=${{ github.event.label.name }}
           BRANCH="${LABEL#backport-}"
           echo "BACKPORT_TARGET=$BRANCH" >> $GITHUB_ENV
-          BACKPORT="backport/pr-${{ github.event.pull_request.number }}-$BACKPORT_TARGET"
+          BACKPORT="backport/pr-${{ github.event.pull_request.number }}-$BRANCH"
           echo "BACKPORT_BRANCH=$BACKPORT" >> $GITHUB_ENV
 
       - name: Checkout backport target branch
@@ -33,22 +33,21 @@ jobs:
         id: cherry-pick
         run: |
           COMMITS=$(git log --pretty="format:%H" --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)
-          echo "$COMMITS" >> commits.txt
           git checkout -b $BACKPORT_BRANCH
-          while read -r sha; do
-          if ! git cherry-pick "$sha"; then
-            echo "Conflict in $sha"
-            git cherry-pick --abort
-            conflict=true
-            echo "conflict=true" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-          done < commits.txt
+          echo "$COMMITS" | while read -r sha; do
+            if ! git cherry-pick "$sha"; then
+              echo "Conflict in $sha"
+              git cherry-pick --abort
+              conflict=true
+              echo "conflict=true" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          done 
           git push origin $BACKPORT_BRANCH
           echo "conflict=false" >> $GITHUB_OUTPUT
 
       - name: Comment PR if conflict
-        if: steps.cherry-pick.outputs == true
+        if: steps.cherry-pick.outputs == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +60,7 @@ jobs:
             })
 
       - name: Create Pull Request
-        if: steps.cherry-pick.outputs == false
+        if: steps.cherry-pick.outputs == 'false'
         uses: actions/github-script@v7
         with:
           script: |
