@@ -47,7 +47,7 @@ jobs:
           echo "conflict=false" >> $GITHUB_OUTPUT
 
       - name: Comment PR if conflict
-        if: steps.cherry-pick.outputs == 'true'
+        if: steps.cherry-pick.outputs.conflict == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
             })
 
       - name: Create Pull Request
-        if: steps.cherry-pick.outputs == 'false'
+        if: steps.cherry-pick.outputs.conflict == 'false'
         uses: actions/github-script@v7
         with:
           script: |
