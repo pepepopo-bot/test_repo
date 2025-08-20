@@ -43,7 +43,7 @@ jobs:
           console.log(JSON.stringify(targets));
           core.setOutput("targets", JSON.stringify(targets));
     outputs:
-      targets: ${{ steps.prepare-parameters.outputs.targets }}
+      targets: ${{ fromJSON(needs.prepare.outputs.targets) }}
 
   backport:
     if: needs.prepare.outputs.targets != '[]'
