@@ -3,6 +3,7 @@ name: Backport
 on:
   pull_request_target:
     types: [labeled]
+
 jobs:
   backport:
     runs-on: ubuntu-latest
@@ -12,11 +13,8 @@ jobs:
     steps:
       - name: Set environment variables
         run: |
-          LABEL=${{ github.event.label.name }}
-          BRANCH="${LABEL#backport-}"
-          echo "BACKPORT_TARGET=$BRANCH" >> $GITHUB_ENV
-          BACKPORT="backport/pr-${{ github.event.pull_request.number }}-$BRANCH"
-          echo "BACKPORT_BRANCH=$BACKPORT" >> $GITHUB_ENV
+          echo "BACKPORT_TARGET=${GITHUB_EVENT_LABEL_NAME#backport-}" >> $GITHUB_ENV
+          echo "BACKPORT_BRANCH=backport/pr-${{ github.event.pull_request.number }}-${GITHUB_EVENT_LABEL_NAME#backport-}" >> $GITHUB_ENV
 
       - name: Checkout backport target branch
         uses: actions/checkout@v4
@@ -32,17 +30,16 @@ jobs:
       - name: Get PR commits and cherry-pick
         id: cherry-pick
         run: |
-          COMMITS=$(git log --pretty="format:%H" --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)
           git checkout -b $BACKPORT_BRANCH
-          echo "$COMMITS" | while read -r sha; do
+          while read -r sha; do
             if ! git cherry-pick "$sha"; then
               echo "Conflict in $sha"
               git cherry-pick --abort
               conflict=true
               echo "conflict=true" >> $GITHUB_OUTPUT
-              exit 1
+              exit 0
             fi
-          done 
+          done <<< "$(git log --pretty=format:%H --reverse ${{ github.event.pull_request.merge_commit_sha }}^1..${{ github.event.pull_request.merge_commit_sha }}^2)"
           git push origin $BACKPORT_BRANCH
           echo "conflict=false" >> $GITHUB_OUTPUT
 
