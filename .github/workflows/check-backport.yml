@@ -23,7 +23,7 @@ jobs:
           
           if (event == "labeled") {
             const label = context.payload.label.name;
-          if (label.startsWith("backport=")){
+            if (label.startsWith("backport=")){
               targets = [label.replace("backport-", "")];
             }
           }else if (event == "closed") {
@@ -49,7 +49,7 @@ jobs:
     needs: prepare
     strategy:
       matrix:
-        target: ${{ fromJSON(needs.prepare.outputs.targets) }}
+        target: ${{ needs.prepare.outputs.targets }}
     name: Process backport
     steps:
       - name: Checkout target branch
