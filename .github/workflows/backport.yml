@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Set environment variables
         run: |
+          GITHUB_EVENT_LABEL_NAME=${{ github.event.label.name }}
           echo "BACKPORT_TARGET=${GITHUB_EVENT_LABEL_NAME#backport-}" >> $GITHUB_ENV
           echo "BACKPORT_BRANCH=backport/pr-${{ github.event.pull_request.number }}-${GITHUB_EVENT_LABEL_NAME#backport-}" >> $GITHUB_ENV
 
