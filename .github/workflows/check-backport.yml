@@ -23,7 +23,7 @@ jobs:
           
           if (event == "labeled") {
             const label = context.payload.label.name;
-            if (label.startsWith("backport=")){
+            if (label.startsWith("backport-")){
               targets = [label.replace("backport-", "")];
             }
             console.log(targets);
