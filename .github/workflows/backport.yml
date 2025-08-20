@@ -80,5 +80,4 @@ jobs:
                 labels: ['backport']
               });
 
-    #if: startsWith(github.event.label.name, 'backport-')
-    # toto bude problém v případě zavření PR bez labelu? -> startsWith(github.event.label.name, 'backport-')
+# labels: ['backport'] -> když to chybí, tak Pr se vytvoří, ale workflow selže, praznou [] ->taky nefungovalo
