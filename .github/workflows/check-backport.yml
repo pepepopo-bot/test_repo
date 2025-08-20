@@ -26,6 +26,7 @@ jobs:
             if (label.startsWith("backport=")){
               targets = [label.replace("backport-", "")];
             }
+            console.log(targets);
           }else if (event == "closed") {
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
@@ -37,8 +38,9 @@ jobs:
               .map(l => l.name)
               .filter(l => l.startsWith("backport-"))
               .map(l => l.replace("backport-", ""))
+            console.log(targets);
           }
-          
+          console.log(JSON.stringify(targets));
           core.setOutput("targets", JSON.stringify(targets));
     outputs:
       targets: ${{ steps.prepare-parameters.outputs.targets }}
