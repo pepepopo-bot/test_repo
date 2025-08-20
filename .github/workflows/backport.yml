@@ -78,7 +78,7 @@ jobs:
                 owner,
                 repo,
                 issue_number: result.data.number,
-                labels: []
+                labels: ['backport']
               });
 
     #if: startsWith(github.event.label.name, 'backport-')
