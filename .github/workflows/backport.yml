@@ -4,7 +4,7 @@ on:
   pull_request_target:
     types: [labeled]
 jobs:
-  Backport:
+  backport:
     #if: startsWith(github.event.label.name, 'backport-')
     # toto bude problém v případě zavření PR bez labelu? -> startsWith(github.event.label.name, 'backport-')
     runs-on: ubuntu-latest
