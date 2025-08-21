@@ -20,6 +20,7 @@ jobs:
         with:
           script: |
             const event = context.payload.action;
+            let targets = [];
             
             if (event == "labeled") {
               const label = context.payload.label.name;
