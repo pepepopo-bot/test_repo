@@ -18,9 +18,5 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(l => l.name)
-            const targets = labels
-              .filter(l => l.startsWith("backport-"))
-              .map(l => l.replace("backport-", ""))
-            core.setOutput("targets", JSON.stringify(targets))
-            system.log("targets")
+            const labels = context.payload.pull_request
+            console.log(labels)
