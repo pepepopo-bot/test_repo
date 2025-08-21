@@ -36,7 +36,6 @@ jobs:
             core.setOutput("targets", JSON.stringify(targets));
     outputs:
       targets: ${{ steps.prepare-parameters.outputs.targets }}
-
   backport:
     if: needs.prepare.outputs.targets != '[]'
     runs-on: ubuntu-latest

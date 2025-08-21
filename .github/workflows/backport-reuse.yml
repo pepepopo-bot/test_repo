@@ -7,8 +7,8 @@ jobs:
   backport:
       uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
       with:
-        label: ${{ github.event.labeled }}
-        pull_request: ${{ github.event.pull_request }}
+        label: ${{ github.event.label.name }}
+        pull_request: ${{ toJSON(github.event.pull_request) }}
       permissions:
         contents: write
         pull-requests: write
