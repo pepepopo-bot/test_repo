@@ -20,14 +20,13 @@ jobs:
       with:
         script: |
           const event = context.payload.action;
-          let targets = [];
           
           if (event == "labeled") {
             const label = context.payload.label.name;
             if (label.startsWith("backport-")){
               targets = [label.replace("backport-", "")];
             }
-          }else if (event == "closed") {
+          } else if (event == "closed") {
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
