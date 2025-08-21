@@ -77,7 +77,7 @@ jobs:
               echo "conflict=true" >> $GITHUB_OUTPUT
               exit
             fi
-          done <<< "$(git log --pretty=format:%H --reverse $MERGE_COMMIT^1..$MERGECOMMIT^2)"
+          done <<< "$(git log --pretty=format:%H --reverse $MERGE_COMMIT^1..$MERGE_COMMIT^2)"
           git push origin $BACKPORT_BRANCH
       - name: Handle backport conflict
         if: steps.create-branch.outputs.conflict
