@@ -1,0 +1,15 @@
+name: backport-reuse.yml
+on:
+  pull_request_target:
+    types: ["closed", "labeled"]
+
+jobs:
+  backport:
+      uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
+      with:
+        label: ${{ github.event.labeled }}
+        pull_request: ${{ github.event.pull_request }}
+      permissions:
+        contents: write
+        pull-requests: write
+
