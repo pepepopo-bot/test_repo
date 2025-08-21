@@ -14,34 +14,25 @@ jobs:
     runs-on: ubuntu-latest
     name: Prepare parameters
     steps:
-    - name: Prepare parameters
-      id: prepare-parameters
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const event = context.payload.action;
-          
-          if (event == "labeled") {
-            const label = context.payload.label.name;
-            if (label.startsWith("backport-")){
-              targets = [label.replace("backport-", "")];
+      - name: Prepare parameters
+        id: prepare-parameters
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const event = context.payload.action;
+            
+            if (event == "labeled") {
+              const label = context.payload.label.name;
+              if (label.startsWith("backport-")){
+                targets = [label.replace("backport-", "")];
+              }
+            } else if (event == "closed") {
+              const labels = context.payload.pull_request.labels.map(l => l.name)
+              const targets = labels
+                .filter(l => l.startsWith("backport-"))
+                .map(l => l.replace("backport-", ""))
             }
-          } else if (event == "closed") {
-            const test = context.payload.pull_request.labels.map(l => l.name)
-            console.log(test)
-          
-            const { data: pullRequest } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-          
-            targets = pullRequest.labels
-              .map(l => l.name)
-              .filter(l => l.startsWith("backport-"))
-              .map(l => l.replace("backport-", ""))
-          }
-          core.setOutput("targets", JSON.stringify(targets));
+            core.setOutput("targets", JSON.stringify(targets));
     outputs:
       targets: ${{ steps.prepare-parameters.outputs.targets }}
 
@@ -100,21 +91,12 @@ jobs:
           BACKPORT_TARGET: ${{ matrix.target }}
         with:
           script: |
-              const { repo, owner } = context.repo;
-              const result = await github.rest.pulls.create({
-                title: `Backport PR #${context.issue.number} to ${process.env.BACKPORT_TARGET}`,
-                owner,
-                repo,
-                head: process.env.BACKPORT_BRANCH,
-                base: process.env.BACKPORT_TARGET,
-                body: 'This PR is auto-generated.'
-              });
-
-
-      # Pokud je event "closed", tak musim resit vsechny existujici labely
-      # Pokud je vent "labeled", tak resim jen ten konkretni label
-      # Vystupem bude muset byt parametr pro matrix job, protoze muze byt PR zavrene
-      #   napr. s dvema labely backport-A a backport-B
-      # musi mit jako output JSON.stringify([ targets ])
-
-      # const labels = context.payload.pull_request.labels.map(l => l.name) -> je nutne použit rest, uzavrene PR asi nevraci všechny labels
+            const { repo, owner } = context.repo;
+            const result = await github.rest.pulls.create({
+              title: `Backport PR #${context.issue.number} to ${process.env.BACKPORT_TARGET}`,
+              owner,
+              repo,
+              head: process.env.BACKPORT_BRANCH,
+              base: process.env.BACKPORT_TARGET,
+              body: 'This PR is auto-generated.'
+            });
