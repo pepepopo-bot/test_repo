@@ -27,6 +27,9 @@ jobs:
               targets = [label.replace("backport-", "")];
             }
           } else if (event == "closed") {
+            const test = context.payload.pull_request.labels.map(l => l.name)
+            console.log(test)
+          
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
