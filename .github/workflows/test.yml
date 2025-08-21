@@ -23,4 +23,4 @@ jobs:
               .filter(l => l.startsWith("backport-"))
               .map(l => l.replace("backport-", ""))
             core.setOutput("targets", JSON.stringify(targets))
-            console.out("targets")
+            system.log("targets")
