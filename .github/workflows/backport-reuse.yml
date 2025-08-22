@@ -5,11 +5,11 @@ on:
 
 jobs:
   backport:
-      uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
-      with:
-        label: ${{ github.event.label.name }}
-        pull_request: ${{ toJSON(github.event.pull_request) }}
-      permissions:
-        contents: write
-        pull-requests: write
+    uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
+    with:
+      label: ${{ github.event.label.name || '' }}
+      pull_request: ${{ toJSON(github.event.pull_request) }}
+    permissions:
+      contents: write
+      pull-requests: write
 
