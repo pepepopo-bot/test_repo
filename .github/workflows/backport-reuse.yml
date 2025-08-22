@@ -1,10 +1,10 @@
-name: backport-reuse.yml
+name: backport-reuse
 on:
   pull_request_target:
     types: ["closed", "labeled"]
 
 jobs:
-  backport:
+  test:
     uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
     with:
       label: ${{ github.event.action == 'labeled' && github.event.label.name || '' }}
