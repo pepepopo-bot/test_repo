@@ -3,16 +3,14 @@ on:
   pull_request_target:
     types: ["closed", "labeled"]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   backport:
     uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
     with:
-      action: ${{ github.event.action }}
+      event: ${{ github.event.action }}
       label: ${{ github.event.action == 'labeled' && github.event.label.name || '' }}
       pull_request: ${{ toJSON(github.event.pull_request) }}
-      pr_number: ${{ github.event.pull_request.number }}
-    permissions:
-      contents: write
-      pull-requests: write
-
-
