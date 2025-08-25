@@ -9,7 +9,7 @@ on:
 permissions: read-all
 
 jobs:
-  scorecard-analysis:
+  scoreca:
     uses: pepepopo-bot/workflows/.github/workflows/scorecards.yml@main
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
