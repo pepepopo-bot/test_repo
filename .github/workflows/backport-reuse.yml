@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   backport:
+    if: ${{ github.event.pull_request.merged }}
     uses: pepepopo-bot/workflows/.github/workflows/backport-workflow.yml@main
     with:
       event: ${{ github.event.action }}
