@@ -10,6 +10,6 @@ permissions: read-all
 
 jobs:
   scorecard-analysis:
-      uses: pepepopo-bot/worklows/.github/workflows/scorecards.yml@main
+    uses: pepepopo-bot/workflows/.github/workflows/scorecards.yml@main
       
 
