@@ -11,5 +11,7 @@ permissions: read-all
 jobs:
   scorecard-analysis:
     uses: pepepopo-bot/workflows/.github/workflows/scorecards.yml@main
+    with:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
       
 
